@@ -27,7 +27,7 @@ public class OauthServiceImpl  extends OauthService {
 		{
 			put("client1", new HashMap<String,Object>() {
 				{					
-					put("secret",new BCryptPasswordEncoder().encode("secret1"));
+					put("secret",new BCryptPasswordEncoder().encode("123456"));
 					put("registeredRedirectUri","http://localhost:8081/oauth2/client1/getCode");
 					put("scope","USER");//不需要前缀SCOPE_
 					put("autoApproveScopes","USER");//不需要前缀SCOPE_
@@ -36,7 +36,7 @@ public class OauthServiceImpl  extends OauthService {
 			});
 			put("admin", new HashMap<String,Object>() {
 				{
-					put("secret",new BCryptPasswordEncoder().encode("admin"));
+					put("secret",new BCryptPasswordEncoder().encode("123456"));
 					put("registeredRedirectUri","http://localhost:8081/oauth2/admin/getCode");
 					put("scope","ADMIN,USER");//不需要前缀SCOPE_
 					put("autoApproveScopes","ADMIN,USER");//不需要前缀SCOPE_

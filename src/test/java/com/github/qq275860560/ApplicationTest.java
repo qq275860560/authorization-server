@@ -34,7 +34,7 @@ public class ApplicationTest {
 
 		// ROLE为普通客户端登录
 
-		ResponseEntity<Map> response = testRestTemplate.exchange("/login?username=username1&password=password1",
+		ResponseEntity<Map> response = testRestTemplate.exchange("/login?username=username1&password=123456",
 				HttpMethod.GET, null, Map.class);
 		String access_token = (String) response.getBody().get("access_token");
 		log.info("" + access_token);
@@ -65,7 +65,7 @@ public class ApplicationTest {
 		Assert.assertEquals(403, response.getStatusCode().value());
 
 		// ROLE为管理员客户端登录
-		response = testRestTemplate.exchange("/login?username=admin&password=admin", HttpMethod.GET, null, Map.class);
+		response = testRestTemplate.exchange("/login?username=admin&password=123456", HttpMethod.GET, null, Map.class);
 		String access_token2 = (String) response.getBody().get("access_token");
 		log.info("" + access_token2);
 		Assert.assertTrue(access_token2.length() > 0);
@@ -101,8 +101,8 @@ public class ApplicationTest {
 	public void oauth2_password() {
 		// SCOPE为普通客户端登录
 
-		ResponseEntity<Map> response = testRestTemplate.withBasicAuth("client1", "secret1").exchange(
-				"/oauth/token?grant_type=password&username=username1&password=password1", HttpMethod.GET, null,
+		ResponseEntity<Map> response = testRestTemplate.withBasicAuth("client1", "123456").exchange(
+				"/oauth/token?grant_type=password&username=username1&password=123456", HttpMethod.GET, null,
 				Map.class);
 		String access_token = (String) response.getBody().get("access_token");
 		log.info("" + access_token);
@@ -124,8 +124,8 @@ public class ApplicationTest {
 		Assert.assertEquals(403, response.getStatusCode().value());
 
 		// SCOPE为管理员客户端登录
-		response = testRestTemplate.withBasicAuth("admin", "admin").exchange(
-				"/oauth/token?grant_type=password&username=username1&password=password1", HttpMethod.GET, null,
+		response = testRestTemplate.withBasicAuth("admin", "123456").exchange(
+				"/oauth/token?grant_type=password&username=username1&password=123456", HttpMethod.GET, null,
 				Map.class);
 		access_token = (String) response.getBody().get("access_token");
 		log.info("" + access_token);
@@ -154,7 +154,7 @@ public class ApplicationTest {
 
 		// SCOPE为普通客户端登录
 
-		ResponseEntity<Map> response = testRestTemplate.withBasicAuth("client1", "secret1")
+		ResponseEntity<Map> response = testRestTemplate.withBasicAuth("client1", "123456")
 				.exchange("/oauth/token?grant_type=client_credentials", HttpMethod.GET, null, Map.class);
 		String access_token = (String) response.getBody().get("access_token");
 		log.info("" + access_token);
@@ -176,7 +176,7 @@ public class ApplicationTest {
 		Assert.assertEquals(403, response.getStatusCode().value());
 
 		// SCOPE为管理员客户端登录
-		response = testRestTemplate.withBasicAuth("admin", "admin")
+		response = testRestTemplate.withBasicAuth("admin", "123456")
 				.exchange("/oauth/token?grant_type=client_credentials", HttpMethod.GET, null, Map.class);
 		access_token = (String) response.getBody().get("access_token");
 		log.info("" + access_token);
@@ -203,7 +203,7 @@ public class ApplicationTest {
 	@Test
 	public void oauth2_authorization_code() {
 		// SCOPE为普通客户端登录
-		ResponseEntity<Map> response = testRestTemplate.exchange("/login?username=username1&password=password1",
+		ResponseEntity<Map> response = testRestTemplate.exchange("/login?username=username1&password=123456",
 				HttpMethod.GET, null, Map.class);
 		String tmp_access_token = (String) response.getBody().get("access_token");
 
@@ -217,7 +217,7 @@ public class ApplicationTest {
 		String code = location.split("=")[1];
 
 		response = testRestTemplate.exchange(
-				"/oauth/token?grant_type=authorization_code&client_id=client1&client_secret=secret1&scope=USER&code="
+				"/oauth/token?grant_type=authorization_code&client_id=client1&client_secret=123456&scope=USER&code="
 						+ code,
 				HttpMethod.GET, null, Map.class);
 		String access_token = (String) response.getBody().get("access_token");
@@ -240,7 +240,7 @@ public class ApplicationTest {
 		Assert.assertEquals(403, response.getStatusCode().value());
 
 		// SCOPE为管理员客户端登录
-		response = testRestTemplate.exchange("/login?username=username1&password=password1", HttpMethod.GET, null,
+		response = testRestTemplate.exchange("/login?username=username1&password=123456", HttpMethod.GET, null,
 				Map.class);
 		String tmp_access_token2 = (String) response.getBody().get("access_token");
 
@@ -254,7 +254,7 @@ public class ApplicationTest {
 		code = location.split("=")[1];
 
 		response = testRestTemplate.exchange(
-				"/oauth/token?grant_type=authorization_code&client_id=admin&client_secret=admin&scope=ADMIN&code="
+				"/oauth/token?grant_type=authorization_code&client_id=admin&client_secret=123456&scope=ADMIN&code="
 						+ code,
 				HttpMethod.GET, null, Map.class);
 		access_token = (String) response.getBody().get("access_token");
@@ -282,7 +282,7 @@ public class ApplicationTest {
 	@Test
 	public void oauth2_refresh_token() {
 		// SCOPE为普通客户端登录
-		ResponseEntity<Map> response = testRestTemplate.exchange("/login?username=username1&password=password1",
+		ResponseEntity<Map> response = testRestTemplate.exchange("/login?username=username1&password=123456",
 				HttpMethod.GET, null, Map.class);
 		String tmp_access_token = (String) response.getBody().get("access_token");
 
@@ -296,7 +296,7 @@ public class ApplicationTest {
 		String code = location.split("=")[1];
 
 		response = testRestTemplate.exchange(
-				"/oauth/token?grant_type=authorization_code&client_id=client1&client_secret=secret1&scope=USER&code="
+				"/oauth/token?grant_type=authorization_code&client_id=client1&client_secret=123456&scope=USER&code="
 						+ code,
 				HttpMethod.GET, null, Map.class);
 		String refresh_token = (String) response.getBody().get("refresh_token");
@@ -304,7 +304,7 @@ public class ApplicationTest {
 		Assert.assertTrue(refresh_token.length() > 0);
 
 		response = testRestTemplate
-				.exchange("/oauth/token?grant_type=refresh_token&client_id=client1&client_secret=secret1&refresh_token="
+				.exchange("/oauth/token?grant_type=refresh_token&client_id=client1&client_secret=123456&refresh_token="
 						+ refresh_token, HttpMethod.GET, null, Map.class);
 		String access_token = (String) response.getBody().get("access_token");
 		log.info("" + access_token);
@@ -326,7 +326,7 @@ public class ApplicationTest {
 		Assert.assertEquals(403, response.getStatusCode().value());
 
 		// SCOPE为管理员客户端登录
-		response = testRestTemplate.exchange("/login?username=username1&password=password1", HttpMethod.GET, null,
+		response = testRestTemplate.exchange("/login?username=username1&password=123456", HttpMethod.GET, null,
 				Map.class);
 		String tmp_access_token2 = (String) response.getBody().get("access_token");
 
@@ -340,7 +340,7 @@ public class ApplicationTest {
 		code = location.split("=")[1];
 
 		response = testRestTemplate.exchange(
-				"/oauth/token?grant_type=authorization_code&client_id=admin&client_secret=admin&scope=ADMIN&code="
+				"/oauth/token?grant_type=authorization_code&client_id=admin&client_secret=123456&scope=ADMIN&code="
 						+ code,
 				HttpMethod.GET, null, Map.class);
 		refresh_token = (String) response.getBody().get("refresh_token");
@@ -348,7 +348,7 @@ public class ApplicationTest {
 		Assert.assertTrue(refresh_token.length() > 0);
 
 		response = testRestTemplate
-				.exchange("/oauth/token?grant_type=refresh_token&client_id=admin&client_secret=admin&refresh_token="
+				.exchange("/oauth/token?grant_type=refresh_token&client_id=admin&client_secret=123456&refresh_token="
 						+ refresh_token, HttpMethod.GET, null, Map.class);
 		access_token = (String) response.getBody().get("access_token");
 		log.info("" + access_token);
@@ -377,27 +377,27 @@ public class ApplicationTest {
 
 		// SCOPE为普通客户端登录
 
-		ResponseEntity<Map> response = testRestTemplate.withBasicAuth("client1", "secret1")
+		ResponseEntity<Map> response = testRestTemplate.withBasicAuth("client1", "123456")
 				.exchange("/oauth/token?grant_type=client_credentials", HttpMethod.GET, null, Map.class);
 		String access_token = (String) response.getBody().get("access_token");
 		log.info("" + access_token);
 		Assert.assertTrue(access_token.length() > 0);
 
 		// 校验正常
-		response = testRestTemplate.withBasicAuth("client1", "secret1")
+		response = testRestTemplate.withBasicAuth("client1", "123456")
 				.exchange("/oauth/check_token?token=" + access_token, HttpMethod.GET, null, Map.class);
 		Assert.assertEquals(200, response.getStatusCode().value());
 		Assert.assertEquals("client1", response.getBody().get("client_id"));
 
 		// SCOPE为管理员客户端登录
-		response = testRestTemplate.withBasicAuth("admin", "admin")
+		response = testRestTemplate.withBasicAuth("admin", "123456")
 				.exchange("/oauth/token?grant_type=client_credentials", HttpMethod.GET, null, Map.class);
 		access_token = (String) response.getBody().get("access_token");
 		log.info("" + access_token);
 		Assert.assertTrue(access_token.length() > 0);
 
 		// 校验正常
-		response = testRestTemplate.withBasicAuth("admin", "admin").exchange("/oauth/check_token?token=" + access_token,
+		response = testRestTemplate.withBasicAuth("admin", "123456").exchange("/oauth/check_token?token=" + access_token,
 				HttpMethod.GET, null, Map.class);
 		Assert.assertEquals(200, response.getStatusCode().value());
 		Assert.assertEquals("admin", response.getBody().get("client_id"));
@@ -411,7 +411,7 @@ public class ApplicationTest {
 
 		// SCOPE为普通客户端登录
 
-		ResponseEntity<Map> response = testRestTemplate.withBasicAuth("client1", "secret1")
+		ResponseEntity<Map> response = testRestTemplate.withBasicAuth("client1", "123456")
 				.exchange("/oauth/token_key", HttpMethod.GET, null, Map.class);
 		String public_key = (String) response.getBody().get("value");
 		log.info("" + public_key);

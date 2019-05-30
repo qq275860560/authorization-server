@@ -11,14 +11,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.jwt.crypto.sign.RsaSigner;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.qq275860560.service.SecurityService;
@@ -42,11 +47,29 @@ public class MyAuthenticationSuccessHandler implements AuthenticationSuccessHand
 	@Autowired
 	private ObjectMapper objectMapper;
 
+	@Autowired
+	private RestTemplate restTemplate;
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 			Authentication authentication) throws IOException, ServletException {
 
 		log.debug("登录成功");
+		
+
+		/*String username="";
+		String password="";
+		String client_id = "";
+		String client_secret="";
+		ResponseEntity<Map> res = restTemplate.exchange(
+				"/oauth/token?grant_type=password&username="+username+"&password="+password, HttpMethod.GET, new HttpEntity<>(new HttpHeaders() {
+					{
+						setBasicAuth(client_id,client_secret);
+					}
+				}),
+				Map.class);
+		String access_token = (String) res.getBody().get("access_token");
+         */
+		
 		String payload = objectMapper.writeValueAsString(new HashMap<String, Object>() {
 			{
 				put("exp", System.currentTimeMillis() / 1000 + securityService.getAccessTokenValiditySeconds());

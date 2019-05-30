@@ -1,7 +1,10 @@
 [TOC]
-[认证中心服务器](https://github.com/qq275860560/authorization-server)
+[认证服务器](https://github.com/qq275860560/authorization-server)
 
+## 架构
 
+服务调用授权与认证时序如下
+![网关架构](../doc/auth.png)
 
 ## 运行
 命令行切换到项目根目录下，执行

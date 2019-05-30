@@ -26,13 +26,13 @@ public class SecurityServiceImpl extends SecurityService {
 		{
 			put("username1", 					
 					new HashMap<String,Object>(){{
-						put("password",new BCryptPasswordEncoder().encode("password1"));
+						put("password",new BCryptPasswordEncoder().encode("123456"));
 			            put("roleNames","ROLE_USER");			         
 					}}
 			);
 			put("admin", 					
 					new HashMap<String,Object>(){{
-						put("password",new BCryptPasswordEncoder().encode("admin"));
+						put("password",new BCryptPasswordEncoder().encode("123456"));
 			            put("roleNames","ROLE_ADMIN,ROLE_USER");			        
 					}});
 		}
