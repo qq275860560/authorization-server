@@ -1,5 +1,5 @@
 [TOC]
-[认证中心服务器](https://github.com/qq275860560/authorization-server)调用示例
+[认证中心服务器](https://github.com/qq275860560/authorization-server)
 
 
 
@@ -12,7 +12,7 @@ mvn spring-boot:run
 此时，本地会默认开启8080端口
 
 ## 测试
-### 登录功能
+### 获取公钥功能
 执行命令
 
 ```
@@ -20,7 +20,7 @@ curl -i -X GET   "http://client1:secret1@localhost:8080/oauth/token_key"
 
 ```
 
-### 登录成功响应结果
+### 获取公钥响应结果
 
 ```
 HTTP/1.1 200
@@ -41,7 +41,14 @@ Date: Thu, 30 May 2019 09:32:52 GMT
 
 其中value就是公钥，以后使用公钥即可验证用户提交的token，从token可以得知用户的角色列表
 
-
+### 用户获取认证码
+/oauth/authorize
+## 网关获取access_token或者第三方获取access_token
+/oauth/token
+### 网关校验token
+/oauth/check_token
+### 网关确认访问
+/oauth/confirm_access
 
 
 # 温馨提醒
