@@ -4,16 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.jwt.crypto.sign.RsaVerifier;
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,11 +18,10 @@ import com.github.qq275860560.security.MyAccessDeniedHandler;
 import com.github.qq275860560.security.MyAuthenticationEntryPoint;
 import com.github.qq275860560.security.MyAuthenticationFailureHandler;
 import com.github.qq275860560.security.MyAuthenticationSuccessHandler;
-import com.github.qq275860560.security.MyRoleFilterInvocationSecurityMetadataSource;
 import com.github.qq275860560.security.MyLogoutHandler;
 import com.github.qq275860560.security.MyLogoutSuccessHandler;
 import com.github.qq275860560.security.MyRequestHeaderAuthenticationFilter;
-import com.github.qq275860560.security.MyRoleAffirmativeBased;
+import com.github.qq275860560.security.MyRoleFilterInvocationSecurityMetadataSource;
 import com.github.qq275860560.security.MyUserDetailsService;
 import com.github.qq275860560.security.MyUsernamePasswordAuthenticationFilter;
 import com.github.qq275860560.service.ClientService;
@@ -65,8 +60,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private MyRoleFilterInvocationSecurityMetadataSource myRoleFilterInvocationSecurityMetadataSource;
 
-	@Autowired
-	private MyRoleAffirmativeBased myRoleAffirmativeBased;
+ 
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -95,33 +89,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.headers().cacheControl();
 		// 禁用session
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-		http.exceptionHandling().accessDeniedHandler(myAccessDeniedHandler);
-		http.logout().addLogoutHandler(myLogoutHandler).logoutSuccessHandler(myLogoutSuccessHandler);
-		http.httpBasic().authenticationEntryPoint(myAuthenticationEntryPoint);
+		
+		http.addFilterBefore(new MyRequestHeaderAuthenticationFilter( authenticationManager(),
+				 myUserDetailsService,  myAuthenticationEntryPoint, restTemplate,   clientService
 
-		http.addFilterBefore(new MyRequestHeaderAuthenticationFilter(authenticationManagerBean(),
-				myUserDetailsService, myAuthenticationEntryPoint,restTemplate,clientService), UsernamePasswordAuthenticationFilter.class);
-
+				) ,
+				UsernamePasswordAuthenticationFilter.class);
 		http.addFilterBefore(new MyUsernamePasswordAuthenticationFilter(objectMapper,restTemplate,clientService),
 				UsernamePasswordAuthenticationFilter.class);
+		    
+		http.requestMatchers().antMatchers( "/login", "/oauth/authorize", "/oauth/token", "/oauth/check_token",
+				"/oauth/token_key", "/oauth/confirm_access", "/oauth/error");
+			/*	
+					http.authorizeRequests().antMatchers(  "/oauth/authorize", "/oauth/token", "/oauth/check_token",
+							"/oauth/token_key", "/oauth/confirm_access", "/oauth/error").permitAll();
+		  */
+				 
 
-		// 使用自定义授权策略
-		// http.authorizeRequests().anyRequest().access("@myAuthorization.check(authentication,request)");
-
-		// http.authorizeRequests().anyRequest().authenticated();
-		//http.requestMatchers()		.antMatchers("/login", "/api/**", "/oauth/authorize", "/oauth/token", "/oauth/check_token",	"/oauth/token_key", "/oauth/confirm_access", "/oauth/error");
-				http.authorizeRequests().antMatchers("/login", "/api/**","/oauth/authorize", "/oauth/token", "/oauth/check_token",
-						"/oauth/token_key", "/oauth/confirm_access", "/oauth/error").authenticated();
-
-		http.authorizeRequests().withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
-			@Override
-			public <O extends FilterSecurityInterceptor> O postProcess(O o) {
-				o.setSecurityMetadataSource(myRoleFilterInvocationSecurityMetadataSource);
-				o.setAccessDecisionManager(myRoleAffirmativeBased);
-				return o;
-			}
-		});
-
+				  //支持basic访问接口
+				  //支持?access_token访问接口
 	}
 
 }

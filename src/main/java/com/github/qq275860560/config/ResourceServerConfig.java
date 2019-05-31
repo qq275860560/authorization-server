@@ -87,8 +87,8 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 	 */
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
-		http.requestMatchers().antMatchers("/oauth2/**");
-		http.authorizeRequests().antMatchers("/oauth2/**").authenticated();
+		http.requestMatchers().antMatchers("/oauth2/**","/api/**");
+		http.authorizeRequests().antMatchers("/oauth2/**","/api/**").authenticated();
 
 		http.authorizeRequests().withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
 			@Override
