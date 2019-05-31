@@ -45,4 +45,19 @@ public class ClientController {
 		};
 	}
 
+	
+	@RequestMapping("/oauth2/github/qq275860560/client/pageClient")
+	public Map<String, Object> pageClient() {
+		OAuth2Authentication oAuth2Authentication =  (OAuth2Authentication)SecurityContextHolder.getContext().getAuthentication();
+		String username= oAuth2Authentication.getUserAuthentication()==null?null:oAuth2Authentication.getUserAuthentication().getName();
+		String clientId=oAuth2Authentication.getOAuth2Request().getClientId(); 
+		log.info("资源用户名称=" + username+",客户端id="+clientId);
+		return new HashMap<String, Object>() {
+			{
+				put("code", HttpStatus.OK.value());
+				put("msg", "分页查询成功");
+				put("data", null);
+			}
+		};
+	}
 }

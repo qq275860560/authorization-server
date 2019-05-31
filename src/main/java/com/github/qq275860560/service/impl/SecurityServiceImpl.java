@@ -30,11 +30,19 @@ public class SecurityServiceImpl extends SecurityService {
 			            put("roleNames","ROLE_USER");			         
 					}}
 			);
+			put("username2", 					
+					new HashMap<String,Object>(){{
+						put("password",new BCryptPasswordEncoder().encode("123456"));
+			            put("roleNames","ROLE_ADMIN");			         
+					}}
+			);
 			put("admin", 					
 					new HashMap<String,Object>(){{
 						put("password",new BCryptPasswordEncoder().encode("123456"));
 			            put("roleNames","ROLE_ADMIN,ROLE_USER");			        
 					}});
+			
+			
 		}
 	};
 
@@ -107,6 +115,11 @@ public class SecurityServiceImpl extends SecurityService {
 				}
 			});			
 
+			put("/oauth2/github/qq275860560/client/pageClient", new HashMap<String, Object>() {
+				{
+					put("roleNames", "ROLE_ADMIN");
+				}
+			});	
 		}
 	};
 

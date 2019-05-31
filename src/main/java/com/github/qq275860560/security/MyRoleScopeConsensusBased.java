@@ -2,8 +2,8 @@ package com.github.qq275860560.security;
 
 import java.util.Arrays;
 
-import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.AuthenticatedVoter;
+import org.springframework.security.access.vote.ConsensusBased;
 import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.oauth2.provider.vote.ScopeVoter;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
@@ -18,10 +18,13 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class MyScopeAffirmativeBased extends AffirmativeBased {
-	 public MyScopeAffirmativeBased() {		  
-			super(Arrays.asList(new WebExpressionVoter(),
-					new ScopeVoter(),
-					new AuthenticatedVoter()));
-	 }
+public class MyRoleScopeConsensusBased extends ConsensusBased {
+	public MyRoleScopeConsensusBased() {
+		super(Arrays.asList(new WebExpressionVoter(),
+				new RoleVoter(), // 角色投票器,默认前缀为ROLE_,可以改成角色继承投票器
+				new ScopeVoter(),
+				new AuthenticatedVoter()));
+		setAllowIfEqualGrantedDeniedDecisions(
+				false);
+	}
 }
