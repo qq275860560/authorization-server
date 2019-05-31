@@ -11,25 +11,18 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.jwt.JwtHelper;
-import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.qq275860560.service.GatewayService;
+import com.github.qq275860560.service.SecurityService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,22 +32,22 @@ import lombok.extern.slf4j.Slf4j;
  */
 
 @Slf4j
-public class MyRequestHeaderAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-	private GatewayService  gatewayService;
+public class MyBearerAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+	private SecurityService  securityService;
 
 	private MyUserDetailsService myUserDetailsService;
  
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 
-	public MyRequestHeaderAuthenticationFilter(AuthenticationManager authenticationManager,
-			MyUserDetailsService myUserDetailsService , GatewayService  gatewayService
+	public MyBearerAuthenticationFilter(AuthenticationManager authenticationManager,
+			MyUserDetailsService myUserDetailsService , SecurityService  securityService
 
 	) {
 
 		super.setAuthenticationManager(authenticationManager);
  
-		this.gatewayService = gatewayService;
+		this.securityService = securityService;
 	
 		this.myUserDetailsService = myUserDetailsService;
 	 
@@ -75,7 +68,7 @@ public class MyRequestHeaderAuthenticationFilter extends UsernamePasswordAuthent
 
 		try {
 			String token = header.replaceAll("Bearer\\s+", "");				
-			String payload = JwtHelper.decodeAndVerify(token, gatewayService.getRsaVerifier()).getClaims();
+			String payload = JwtHelper.decodeAndVerify(token, securityService.getRsaVerifier()).getClaims();
 			String username = (String) objectMapper.readValue(payload, Map.class).get("user_name");
 			if (System.currentTimeMillis() / 1000 > (Integer) objectMapper.readValue(payload, Map.class).get("exp")) {
 				throw new Exception("token已过期");

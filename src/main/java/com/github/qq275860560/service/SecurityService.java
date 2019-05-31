@@ -1,14 +1,14 @@
 package com.github.qq275860560.service;
 
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.DigestUtils;
+import org.springframework.security.jwt.crypto.sign.RsaVerifier;
+import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 
 /**
  * @author jiangyuanlin@163.com
@@ -45,43 +45,26 @@ public abstract class SecurityService {
 
 	
 
-	/**根据登录用户查询密码
+	/** 登录用户密码
 	 * 在登录阶段时，要调用此接口获取到用户密码，之后跟加密后的登录密码比较
 	 * 根据登录账号查询密码，此密码非明文密码，而是PasswordEncoder对明文加密后的密码，因为
 	 * spring security框架中数据库默认保存的是PasswordEncoder对明文加密后的密码
 	 * 用户发送的密码加密后会跟这个函数返回的密码相匹配，如果成功，则认证成功，并保存到session中，程序任何地方可以通过以下代码获取当前的username
 	 * String username=(String)SecurityContextHolder.getContext().getAuthentication().getName();  
 	 * 再根据用户名称查询数据库获得其他个人信息
-	 * @param username 登录用户名称
-	 * @return 返回加密后的用户密码字符串
-	 */
-	public String getPasswordByUserName(String username) {
-		return passwordEncoder.encode("123456");// 数据库查出来的密码，默认每个用户都是123456的加密
-	}
-	/**
-	 * 根据登录用户查询对应的角色名称集合
+
+	 
+	 * 登录用户 对应的角色名称集合
 	 * 在认证阶段时，要调用此接口初始化用户权限
 	 * 如果返回null或空集合，代表该用户没有权限，这类用户其实跟匿名用户没有什么区别
 	 * 如果username隶属于某高层次的角色或组织，应当把高层次的角色或组织对应的角色也返回，比如username的角色为ROLE_1, ROLE_1继承ROLE_2角色，并且username属于A部门，A部门拥有角色ROLE_3；所以应当返回ROLE_1,ROLE_2,ROLE_3
-	 * @param username 登录用户名称
-	 * @return 角色名称集合
+ 
 	 */
-	public Set<String> getRoleNamesByUsername(String username){// ROLE_开头
-		return Collections.EMPTY_SET;// 数据库查出来的用户角色权限，默认此用户没有特殊权限，跟未登录的用户（匿名用户，游客）相同
-		
+	
+	public UserDetails getUserDetailsByUsername(String username) {
+		return null ;
 	}
-	/**
-	 * 根据登录用户查询客户端的信息
-	 * 此接口是为了和oauth2的密码模式相互兼容，使用/login获取的token也可以访问开放接口
-	 * 默认返回空信息
-	 * 如果业务没有开放接口，或者该用户没有权限访问开放接口，返回空，
-	 * 如果需要访问某个接口，其接口所需的SCOPE为SCOPE_USER,SCOPE_ADMIN,那么请返回包含USER,ADMIN的SCOPE集合,不需要前缀,
-	 * @param username 用户名称
-	 * @return 客户端信息(至少包括一个clientId字段和一个scope字段)
-	 */
-	public Map<String,Object> getClientByUsername(String username){
-		return Collections.EMPTY_MAP;// return new HashMap<String,Object>() {{put("clientId":username);put("scope","ADMIN,USER");}	
-	}
+
 
 	/**
 	 * 根据请求路径查询对应的角色名称集合
@@ -89,10 +72,10 @@ public abstract class SecurityService {
 	 * 登录用户至少拥有一个角色，才能访问
 	 * 如果返回null或空集合或包含ROLE_ANONYMOUS，代表该url不需要权限控制，任何用户(包括匿名)用户都可以访问
 	 * 如果url符合某个正则表达式，应当把正则表达式的角色也返回，比如/api/a的角色为ROLE_1,ROLE_2, 而数据库中还存在/api/*的角色为ROLE_3,ROLE_4；由于/api/a属于正则表达式/api/*,所以应当返回ROLE_1,ROLE_2,ROLE_3,ROLE_4
-	 * @param url 请求路径（ip端口之后的路径）
+	 * @param requestURI 请求路径（ip端口之后的路径）
 	 * @return 权限集合
 	 */
-	public Set<String> getRoleNamesByRequestURI(String url){//ROLE_开头
+	public Set<String> getRoleNamesByRequestURI(String requestURI){//ROLE_开头
 		return Collections.EMPTY_SET;  // 数据库查出来的url角色权限，默认只要具有ROLE_ANONYMOUS角色的用户即可访问
 	 
 	}
@@ -102,12 +85,7 @@ public abstract class SecurityService {
 
 	
 	
-	/**token的过期时长(单位为秒)
-	 * @return 秒
-	 */
-	public int getAccessTokenValiditySeconds() {
-		return 10*365*24*3600;	 
-	}
+	 
 
 	/**私钥字符串(参考https://github.com/qq275860560/common/blob/master/src/main/java/com/github/qq275860560/common/util/RsaUtil.java)
 	 * @return 私钥字符串
@@ -132,7 +110,7 @@ public abstract class SecurityService {
 	 */
 	public Set<String> getScopesByRequestURI(String requestURI) {//SCOPE_开头
 		// 从缓存或数据库中查找
-		return null;
+		return Collections.EMPTY_SET;
 	}
 	
 	
@@ -183,8 +161,58 @@ public abstract class SecurityService {
 	 * @return 客户端属性 
 	 */
 	 
-	public Map<String, Object> getClientByClientId(String clientId) {
+	public ClientDetails getClientDetailsByClientId(String clientId) {
 		// 从缓存或数据库中查找
 		return null;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**获取网关（客户端）的client_id和client_secret
+	  *  一个应用通常服务器有3种，网关（客户端），资源服务器，认证授权服务器
+	  *  登陆时，用户通过浏览器带上账号username密码password访问网关的/login，网关通过oauth2密码模式带上其client_id,client_secret和username,password向认证授权服务器请求发出请求/oauth/token，再把响应回来的access_token返回到浏览器
+	  *  网关访问 "/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error"等接口也需要client_id和client_secret
+	  *  所以网关需要一个client_id和client_secret
+	  * 如果当前应用不是网关，可以忽略此接口
+	 * @return 网关（客户端）的client_id和client_secret
+	 */
+	public ClientDetails getClientDetails() {
+		BaseClientDetails baseClientDetails = new BaseClientDetails();
+		baseClientDetails.setClientId("gateway");
+		baseClientDetails.setClientSecret("123456");
+		return baseClientDetails;
+	}
+	 
+	 
+	/**获取认证授权服务器的url
+	 *   网关访问 "/oauth/token","/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error"等接口需要知道认证授权服务器url前缀
+	 *  如果当前应用不是网关，可以忽略此接口
+	 * @return 认证授权服务器的url
+	 */
+	public String getAuthorizationServerUrl() {	 
+		return  "http://localhost:8080";
+	}
+	
+	
+
+	/**
+	 * 获取认证授权服务器的公钥
+	 * 默认第一次访问的时候，加载认证授权服务器的公钥,
+	 * 如果应用本身也是认证服务器读取配置文件
+	 * 如果认证授权逻辑不再该应用中，通过默认的/oauth/token_key加载公钥
+	 * @return 公钥
+	 */
+	public RsaVerifier getRsaVerifier() {
+		 return null;
 	}
 }

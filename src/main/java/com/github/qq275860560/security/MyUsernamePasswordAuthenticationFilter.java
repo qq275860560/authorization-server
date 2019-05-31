@@ -1,7 +1,6 @@
 package com.github.qq275860560.security;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.FilterChain;
@@ -15,15 +14,16 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.crypto.codec.Base64;
+import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.util.StringUtils;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.qq275860560.service.GatewayService;
+import com.github.qq275860560.service.SecurityService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,16 +36,21 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 
 	private ObjectMapper objectMapper;
 	private RestTemplate  restTemplate;
-	private GatewayService  gatewayService;
+	private SecurityService  securityService;
+//	private MyUserDetailsService myUserDetailsService;
+//	private MyPasswordEncoder myPasswordEncoder;
 	// curl -i -X GET "http://localhost:8080/login?username=username1&password=123456"
 
 	public MyUsernamePasswordAuthenticationFilter(ObjectMapper objectMapper, RestTemplate restTemplate,
-			GatewayService gatewayService) {
+			SecurityService gatewayService) {
 		super.setPostOnly(false);
 		super.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/login"));
 		this.objectMapper = objectMapper;
 		this.restTemplate = restTemplate;
-		this.gatewayService = gatewayService;
+		this.securityService = gatewayService;
+//		this.myUserDetailsService = myUserDetailsService;
+//		this.myPasswordEncoder = myPasswordEncoder;
+	
 	}
 
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -82,19 +87,16 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 			username = username.trim();
 			/*****拷贝自UsernamePasswordAuthenticationFilter.attemptAuthentication*****/
 
-			// 向认证服务器发起请求
-
+			// 如果网关和认证中心在不同tomcat,向认证服务器发起请求，
 			ResponseEntity<Map> result = restTemplate
 					.exchange(
-							gatewayService.getAuthorizationServerUrl() + "/oauth/token?grant_type=password&username="
+							securityService.getAuthorizationServerUrl() + "/oauth/token?grant_type=password&username="
 									+ username + "&password=" + password,
 							HttpMethod.POST, new HttpEntity<>(new HttpHeaders() {
 								{
-									setBasicAuth(gatewayService.getClient().get("client_id"), gatewayService.getClient().get("client_secret"));
+									setBasicAuth(securityService.getClientDetails().getClientId(), securityService.getClientDetails().getClientSecret());
 								}
 							}), Map.class);
-			String access_token = (String) result.getBody().get("access_token");
-
 			HttpHeaders entityHeaders = result.getHeaders();
 			entityHeaders.forEach((key, value) -> {
 				value.forEach((headerValue) -> {
@@ -103,8 +105,53 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 			});
 			response.getWriter().write(objectMapper.writeValueAsString(result.getBody()));
 			response.getWriter().flush();
+			 
+			/*String encoding =    Base64Utils.encodeToString((securityService.getClientDetails().getClientId()+":"+securityService.getClientDetails().getClientSecret()).getBytes());
+			response.setHeader("Authorization", "Basic " + encoding);
+			request.getRequestDispatcher("/oauth/token").forward(request, response);
+			*/
+			//如果网关和认证中心在同一tomcat，则仿照/oauth/token直接认证，减少http请求
+			/*ClientDetails clientDetails = securityService.getClientDetails();
+			Set<String> scope = securityService.getClientDetailsByClientId(clientDetails.getClientId()).getScope();
+			Collection<GrantedAuthority>  authorities = securityService.getClientDetailsByClientId(clientDetails.getClientId()).getAuthorities();
+			Set<String>  authorizedGrantTypes = securityService.getClientDetailsByClientId(clientDetails.getClientId()).getAuthorizedGrantTypes();
 
-			//
+			OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(new OAuth2Request( 
+					 null, clientDetails.getClientId(), authorities,true,  
+							scope, null, null, authorizedGrantTypes , null)
+					
+					,null);
+			 tokenEndpoint.postAccessToken(oAuth2Authentication, new HashMap<String, String>(){{
+				 put("grant_type","password");put("username",username);put("password",password);
+				 
+			 }});*/
+			
+			/*UserDetails userDetails = myUserDetailsService.loadUserByUsername(username);
+			if (userDetails == null) {
+				throw new Exception("用户不存在");
+			} else if (!myPasswordEncoder.matches(password, userDetails.getPassword())) {
+				throw new Exception("密码错误");
+			}
+
+			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
+					userDetails.getPassword(), userDetails.getAuthorities());
+			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails((HttpServletRequest) request));
+
+			ClientDetails clientDetails = securityService.getClientDetails();
+			Set<String> scope = securityService.getClientDetailsByClientId(clientDetails.getClientId()).getScope();
+
+			TokenRequest tokenRequest = new TokenRequest(new HashMap<>(), clientDetails.getClientId(), scope,
+					"password");
+
+			OAuth2Request oAuth2Request = tokenRequest.createOAuth2Request(clientDetails);
+
+			OAuth2Authentication oAuth2Authentication = new OAuth2Authentication(oAuth2Request, authentication);
+
+			OAuth2AccessToken token = myDefaultTokenServices.createAccessToken(oAuth2Authentication);
+			response.setContentType("application/json;charset=UTF-8");
+			response.getWriter().write(objectMapper.writeValueAsString(token));
+			response.getWriter().flush();
+*/
 		} catch (Exception e) {
 			unsuccessfulAuthentication((HttpServletRequest) req, (HttpServletResponse) res,
 					new AuthenticationServiceException(e.getMessage(), e));

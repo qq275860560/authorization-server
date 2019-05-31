@@ -9,14 +9,16 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.qq275860560.security.MyRequestHeaderAuthenticationFilter;
+import com.github.qq275860560.security.MyBearerAuthenticationFilter;
+import com.github.qq275860560.security.MyDefaultTokenServices;
 import com.github.qq275860560.security.MyUserDetailsService;
 import com.github.qq275860560.security.MyUsernamePasswordAuthenticationFilter;
-import com.github.qq275860560.service.GatewayService;
+import com.github.qq275860560.service.SecurityService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,10 +35,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private RestTemplate  restTemplate;
 	@Autowired
-	private GatewayService  gatewayService;
+	private SecurityService  securityService;
 	@Autowired
 	private MyUserDetailsService myUserDetailsService;
- 
+	@Autowired
+	private MyDefaultTokenServices myDefaultTokenServices;
+	
 
 	@Bean
 	@Override
@@ -63,12 +67,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		// 禁用session
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 		
-		http.addFilterBefore(new MyRequestHeaderAuthenticationFilter( authenticationManager(),
-				 myUserDetailsService ,     gatewayService
+		http.addFilterBefore(new MyBearerAuthenticationFilter( authenticationManager(),
+				 myUserDetailsService ,     securityService
 
 				) ,
 				UsernamePasswordAuthenticationFilter.class);
-		http.addFilterBefore(new MyUsernamePasswordAuthenticationFilter(objectMapper,restTemplate,gatewayService),
+		http.addFilterBefore(new MyUsernamePasswordAuthenticationFilter(objectMapper,restTemplate,securityService),
 				UsernamePasswordAuthenticationFilter.class);
 		    
 		http.requestMatchers().antMatchers( "/login", "/oauth/authorize", "/oauth/token", "/oauth/check_token",
@@ -79,5 +83,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		  */
 		
 	}
+	
+	//code太长问题
+	//重启之后token和code失效问题
+	//文档不够详细
+	//分模块并抽取公共类
+	
 
 }
