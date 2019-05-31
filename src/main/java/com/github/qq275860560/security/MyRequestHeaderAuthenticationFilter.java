@@ -10,6 +10,10 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,8 +23,10 @@ import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.qq275860560.service.ClientService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,8 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class MyRequestHeaderAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-
-	private RsaVerifier rsaVerifier;
+	private RestTemplate  restTemplate;
+	private ClientService  clientService;
 
 	private MyUserDetailsService myUserDetailsService;
 
@@ -40,13 +46,15 @@ public class MyRequestHeaderAuthenticationFilter extends UsernamePasswordAuthent
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 
-	public MyRequestHeaderAuthenticationFilter(AuthenticationManager authenticationManager, RsaVerifier rsaVerifier,
-			MyUserDetailsService myUserDetailsService, MyAuthenticationEntryPoint myAuthenticationEntryPoint
+	public MyRequestHeaderAuthenticationFilter(AuthenticationManager authenticationManager,
+			MyUserDetailsService myUserDetailsService, MyAuthenticationEntryPoint myAuthenticationEntryPoint,RestTemplate restTemplate, ClientService  clientService
 
 	) {
 
 		super.setAuthenticationManager(authenticationManager);
-		this.rsaVerifier = rsaVerifier;
+		this.restTemplate=restTemplate;
+		this.clientService = clientService;
+	
 		this.myUserDetailsService = myUserDetailsService;
 		this.myAuthenticationEntryPoint = myAuthenticationEntryPoint;
 
@@ -65,8 +73,8 @@ public class MyRequestHeaderAuthenticationFilter extends UsernamePasswordAuthent
 		}
 
 		try {
-			String token = header.replaceAll("Bearer\\s+", "");
-			String payload = JwtHelper.decodeAndVerify(token, rsaVerifier).getClaims();
+			String token = header.replaceAll("Bearer\\s+", "");				
+			String payload = JwtHelper.decodeAndVerify(token, clientService.getRsaVerifier()).getClaims();
 			String username = (String) objectMapper.readValue(payload, Map.class).get("user_name");
 			if (System.currentTimeMillis() / 1000 > (Integer) objectMapper.readValue(payload, Map.class).get("exp")) {
 				throw new Exception("token已过期");

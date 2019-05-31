@@ -15,7 +15,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.qq275860560.security.MyAccessDeniedHandler;
 import com.github.qq275860560.security.MyAuthenticationEntryPoint;
 import com.github.qq275860560.security.MyAuthenticationFailureHandler;
@@ -27,6 +29,7 @@ import com.github.qq275860560.security.MyRequestHeaderAuthenticationFilter;
 import com.github.qq275860560.security.MyRoleAffirmativeBased;
 import com.github.qq275860560.security.MyUserDetailsService;
 import com.github.qq275860560.security.MyUsernamePasswordAuthenticationFilter;
+import com.github.qq275860560.service.ClientService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,6 +42,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
+	private ObjectMapper objectMapper;
+	@Autowired
+	private RestTemplate  restTemplate;
+	@Autowired
+	private ClientService  clientService;
+	@Autowired
 	private MyUserDetailsService myUserDetailsService;
 	@Autowired
 	private MyLogoutSuccessHandler myLogoutSuccessHandler;
@@ -46,8 +55,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	private MyLogoutHandler myLogoutHandler;
 	@Autowired
 	private MyAccessDeniedHandler myAccessDeniedHandler;
-	@Autowired
-	private RsaVerifier rsaVerifier;
 	@Autowired
 	private MyAuthenticationFailureHandler myAuthenticationFailureHandler;
 	@Autowired
@@ -70,11 +77,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		return super.authenticationManagerBean();
 	}
 
-	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.userDetailsService(myUserDetailsService).passwordEncoder(passwordEncoder);
-
-	}
+	
 
 	@Override
 	public void configure(WebSecurity web) throws Exception {
@@ -96,11 +99,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.logout().addLogoutHandler(myLogoutHandler).logoutSuccessHandler(myLogoutSuccessHandler);
 		http.httpBasic().authenticationEntryPoint(myAuthenticationEntryPoint);
 
-		http.addFilterBefore(new MyRequestHeaderAuthenticationFilter(authenticationManagerBean(), rsaVerifier,
-				myUserDetailsService, myAuthenticationEntryPoint), UsernamePasswordAuthenticationFilter.class);
+		http.addFilterBefore(new MyRequestHeaderAuthenticationFilter(authenticationManagerBean(),
+				myUserDetailsService, myAuthenticationEntryPoint,restTemplate,clientService), UsernamePasswordAuthenticationFilter.class);
 
-		http.addFilterBefore(new MyUsernamePasswordAuthenticationFilter(authenticationManagerBean(),
-				myAuthenticationSuccessHandler, myAuthenticationFailureHandler),
+		http.addFilterBefore(new MyUsernamePasswordAuthenticationFilter(objectMapper,restTemplate,clientService),
 				UsernamePasswordAuthenticationFilter.class);
 
 		// 使用自定义授权策略

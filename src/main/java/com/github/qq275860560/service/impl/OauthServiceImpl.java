@@ -28,16 +28,31 @@ public class OauthServiceImpl  extends OauthService {
 			put("client1", new HashMap<String,Object>() {
 				{					
 					put("secret",new BCryptPasswordEncoder().encode("123456"));
-					put("registeredRedirectUri","http://localhost:8081/oauth2/client1/getCode");
+					put("registeredRedirectUris","http://localhost:8081/oauth2/client1/getCode");
+					put("authorizedGrantTypes","password,authorization_code,refresh_token,client_credentials");
 					put("scope","USER");//不需要前缀SCOPE_
 					put("autoApproveScopes","USER");//不需要前缀SCOPE_
+					
 			 
 				}
 			});
 			put("admin", new HashMap<String,Object>() {
 				{
 					put("secret",new BCryptPasswordEncoder().encode("123456"));
-					put("registeredRedirectUri","http://localhost:8081/oauth2/admin/getCode");
+					put("registeredRedirectUris","http://localhost:8081/oauth2/admin/getCode");
+					put("authorizedGrantTypes","authorization_code,refresh_token,implicit,password,client_credentials");
+
+					put("scope","ADMIN,USER");//不需要前缀SCOPE_
+					put("autoApproveScopes","ADMIN,USER");//不需要前缀SCOPE_
+				}
+			});
+			
+			put("gateway", new HashMap<String,Object>() {//网关只支持密码模式，不需要
+				{
+					put("secret",new BCryptPasswordEncoder().encode("123456"));
+					put("registeredRedirectUris","http://localhost:8081/oauth2/admin/getCode");
+					put("authorizedGrantTypes","refresh_token,implicit,password,client_credentials");
+
 					put("scope","ADMIN,USER");//不需要前缀SCOPE_
 					put("autoApproveScopes","ADMIN,USER");//不需要前缀SCOPE_
 				}
@@ -83,11 +98,22 @@ public class OauthServiceImpl  extends OauthService {
 	 * @return 回调地址集合
 	 */
 	@Override
-	public Set<String> getRegisteredRedirectUriByClientId(String clientId) {
+	public Set<String> getRegisteredRedirectUrisByClientId(String clientId) {
 		// 从缓存或数据库中查找
-		 String registeredRedirectUri=(String)client_cache.get(clientId).get("registeredRedirectUri");
-		 return new HashSet<String>(Arrays.asList(registeredRedirectUri.split(",")));
+		 String registeredRedirectUris=(String)client_cache.get(clientId).get("registeredRedirectUris");
+		 return new HashSet<String>(Arrays.asList(registeredRedirectUris.split(",")));
 		  
+	}
+	
+	/**根据客户端id查询授权类型集合
+	  * 通常网关（本应用客户端）支持客户端模式和密码模式,第三方客户端支持客户端模式和认证码模式
+	 * @param clientId 客户端ID
+	 * @return 授权类型集合
+	 */
+	public Set<String> getAuthorizedGrantTypes(String clientId){
+		// 从缓存或数据库中查找
+		 String authorizedGrantTypes=(String)client_cache.get(clientId).get("authorizedGrantTypes");
+		 return new HashSet<String>(Arrays.asList(authorizedGrantTypes.split(",")));
 	}
  
 	/**根据客户端id查询SCOPE集合

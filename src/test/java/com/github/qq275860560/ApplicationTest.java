@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings(value= {"serial" ,"rawtypes"})
 @Slf4j
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class ApplicationTest {
 
 	@Autowired

@@ -1,6 +1,6 @@
 package com.github.qq275860560.security;
 
-import java.util.Arrays;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -39,12 +39,24 @@ public class MyClientDetailsService implements ClientDetailsService {
 		clientDetails.setClientId(clientId);
 		clientDetails.setClientSecret(secret);
 		// 接收认证码的url
-		clientDetails.setRegisteredRedirectUri( oauthService.getRegisteredRedirectUriByClientId(clientId) );
+		Set<String> registeredRedirectUris = oauthService.getRegisteredRedirectUrisByClientId(clientId);
+		if(registeredRedirectUris!=null) {
+			clientDetails.setRegisteredRedirectUri(registeredRedirectUris  );
+		}
+		Set<String>  AuthorizedGrantTypes = oauthService.getAuthorizedGrantTypes(clientId);
+		if(AuthorizedGrantTypes!=null) {
 		clientDetails.setAuthorizedGrantTypes(
-				Arrays.asList("authorization_code", "refresh_token", "implicit", "password", "client_credentials"));
+				AuthorizedGrantTypes);
+		}
 		// 客户端的权限
-		clientDetails.setScope( oauthService.getScopesByClientId(clientId));
-		clientDetails.setAutoApproveScopes(oauthService.getAutoApproveScopesByClientId(clientId));
+		Set<String> scopes= oauthService.getScopesByClientId(clientId);
+		if(clientId!=null) {
+			clientDetails.setScope(scopes);		
+		}
+		Set<String> autoApproveScopes=oauthService.getAutoApproveScopesByClientId(clientId);
+		if(autoApproveScopes!=null) {
+			clientDetails.setAutoApproveScopes(autoApproveScopes);
+		}
 		clientDetails.setAccessTokenValiditySeconds(oauthService.getAccessTokenValiditySeconds());
 		return clientDetails;
 

@@ -40,10 +40,20 @@ public abstract class OauthService {
 	 * @param clientId 客户端ID
 	 * @return 回调地址集合
 	 */
-	public Set<String> getRegisteredRedirectUriByClientId(String clientId) {
+	public Set<String> getRegisteredRedirectUrisByClientId(String clientId) {
 		// 从缓存或数据库中查找
 		return null;
 
+	}
+	
+	/**根据客户端id查询授权类型集合
+	  * 通常网关（本应用客户端）支持客户端模式和密码模式,第三方客户端支持客户端模式和认证码模式
+	 * @param clientId 客户端ID
+	 * @return 授权类型集合
+	 */
+	public Set<String> getAuthorizedGrantTypes(String clientId){
+		// 从缓存或数据库中查找
+		return null;
 	}
 
 	/**根据客户端id查询SCOPE集合
@@ -94,6 +104,7 @@ public abstract class OauthService {
 	  *  登陆时，用户通过浏览器带上账号username密码password访问网关的/login，网关通过oauth2密码模式带上其client_id,client_secret和username,password向认证授权服务器请求发出请求/oauth/token，再把响应回来的access_token返回到浏览器
 	  *  网关访问 "/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error"等接口也需要client_id和client_secret
 	  *  所以网关需要一个client_id和client_secret
+	  * 如果当前应用不是网关，可以忽略此接口
 	 * @return 网关（客户端）的client_id和client_secret
 	 */
 	public Map<String,String> getGatewayClient() {	
@@ -105,7 +116,7 @@ public abstract class OauthService {
 	 
 	/**获取认证授权服务器的url
 	 *   网关访问 "/oauth/token","/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error"等接口需要知道认证授权服务器url前缀
-	 *  
+	 *  如果当前应用不是网关，可以忽略此接口
 	 * @return 认证授权服务器的url
 	 */
 	public String getAuthorizationServerUrl() {	 
