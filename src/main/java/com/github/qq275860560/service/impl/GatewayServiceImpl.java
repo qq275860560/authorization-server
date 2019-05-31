@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.client.RestTemplate;
 
-import com.github.qq275860560.service.ClientService;
+import com.github.qq275860560.service.GatewayService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Component
 @Slf4j
-public class ClientServiceImpl extends ClientService {
+public class GatewayServiceImpl extends GatewayService {
 
 	public Map<String, String> getClient() {
 		return new HashMap<String, String>() {

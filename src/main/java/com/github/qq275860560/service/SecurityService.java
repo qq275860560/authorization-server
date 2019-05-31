@@ -92,7 +92,7 @@ public abstract class SecurityService {
 	 * @param url 请求路径（ip端口之后的路径）
 	 * @return 权限集合
 	 */
-	public Set<String> getRoleNamesByUrI(String url){//ROLE_开头
+	public Set<String> getRoleNamesByRequestURI(String url){//ROLE_开头
 		return Collections.EMPTY_SET;  // 数据库查出来的url角色权限，默认只要具有ROLE_ANONYMOUS角色的用户即可访问
 	 
 	}
@@ -110,22 +110,81 @@ public abstract class SecurityService {
 	}
 
 	/**私钥字符串(参考https://github.com/qq275860560/common/blob/master/src/main/java/com/github/qq275860560/common/util/RsaUtil.java)
-	 * @return
-	 * @throws Exception
-	 * @throws CertificateException
-	 * @throws UnrecoverableKeyException
+	 * @return 私钥字符串
 	 */
-	public String getPrivateKeyBase64EncodeString() throws Exception, CertificateException, UnrecoverableKeyException {
-		String privateKey = "MIIBVgIBADANBgkqhkiG9w0BAQEFAASCAUAwggE8AgEAAkEAhoMJ703MADFT4Lf5MUQDQiG4qz7wqArKvzMhPdOmK8FM2GXKY57RTn4vXIrudYC7kl6Fdfuyedvv1wXYiMkqDwIDAQABAkBq2uIjhmvOo2D8nWmKJ3tnJ56p+x/2fkw9w4JeuSnCi2vvfcUN4Sb2FRR5Ckgw+4DExvC8W5Fjr5EGg6MedjvxAiEA2O+6sjn3zvljzREYHc8Pc3dlmaSW2zmCo/nwyCO9EUUCIQCeu7n4oBtnv7K++8461grqlB1Afu5Es89k/XvES6DhQwIhANCO+PArpsBHJtmZm5Pc4z/hA76Ia7frPFulCQWAxl35AiEAlH9tQPKQEORfFZq+2X4q4j/EifT1dWJ+cK1Pn1ldXb8CIQDUD6VYAC/nR+nIYUiU12kn2uBKe1bg2fwnUOJotFc6Kw==";
-		return privateKey;
+	public String getPrivateKeyBase64EncodeString() {
+		return "MIIBVgIBADANBgkqhkiG9w0BAQEFAASCAUAwggE8AgEAAkEAhoMJ703MADFT4Lf5MUQDQiG4qz7wqArKvzMhPdOmK8FM2GXKY57RTn4vXIrudYC7kl6Fdfuyedvv1wXYiMkqDwIDAQABAkBq2uIjhmvOo2D8nWmKJ3tnJ56p+x/2fkw9w4JeuSnCi2vvfcUN4Sb2FRR5Ckgw+4DExvC8W5Fjr5EGg6MedjvxAiEA2O+6sjn3zvljzREYHc8Pc3dlmaSW2zmCo/nwyCO9EUUCIQCeu7n4oBtnv7K++8461grqlB1Afu5Es89k/XvES6DhQwIhANCO+PArpsBHJtmZm5Pc4z/hA76Ia7frPFulCQWAxl35AiEAlH9tQPKQEORfFZq+2X4q4j/EifT1dWJ+cK1Pn1ldXb8CIQDUD6VYAC/nR+nIYUiU12kn2uBKe1bg2fwnUOJotFc6Kw==";
 	}
 
 	/**公钥字符串(参考https://github.com/qq275860560/common/blob/master/src/main/java/com/github/qq275860560/common/util/RsaUtil.java)
-	 * @return
-	 * @throws Exception
+	 * @return 公钥字符串 
 	 */
-	public String getPublicKeyBase64EncodeString() throws Exception {
-		String publicKey = "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIaDCe9NzAAxU+C3+TFEA0IhuKs+8KgKyr8zIT3TpivBTNhlymOe0U5+L1yK7nWAu5JehXX7snnb79cF2IjJKg8CAwEAAQ==";
-		return publicKey;
+	public String getPublicKeyBase64EncodeString(){
+		return "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIaDCe9NzAAxU+C3+TFEA0IhuKs+8KgKyr8zIT3TpivBTNhlymOe0U5+L1yK7nWAu5JehXX7snnb79cF2IjJKg8CAwEAAQ==";
+	}
+	
+	/**根据请求路径查询对应的SCOPE名称集合
+	 * 在客户端访问系统时，需要对uri进行校验，
+	 * 当客户端的SCOPE包含uri的所有SCOPE时，才能访问成功
+	 * 客户端的SCOPE需要前缀SCOPE_
+	 * @param requestURI 请求相对路径
+	 * @return SCOPE集合
+	 */
+	public Set<String> getScopesByRequestURI(String requestURI) {//SCOPE_开头
+		// 从缓存或数据库中查找
+		return null;
+	}
+	
+	
+	
+
+	/**客户端密码
+	 * 在登录阶段时，要调用此接口获取到客户端密码，之后跟加密后的登录密码比较
+	 * 根据客户端ID查询密码，此密码非明文密码，而是PasswordEncoder对明文加密后的密码，因为
+	 * spring security框架中数据库默认保存的是PasswordEncoder对明文加密后的密码
+	 * 客户端发送的密码加密后会跟这个函数返回的密码相匹配，如果成功，则认证成功，并保存到session中，
+	 * 对于oauth2的密码模式和认证码模式程序任何地方可以通过以下代码获取当前的用户名称
+	* String username=(String)SecurityContextHolder.getContext().getAuthentication().getName(); 
+	* 对于oauth2的客户端模式程序任何地方可以通过以下代码获取当前的客户端id和资源所有者名称(客户端模式的资源所有者为空)
+	* OAuth2Authentication oAuth2Authentication =  (OAuth2Authentication)SecurityContextHolder.getContext().getAuthentication();
+	* String username= oAuth2Authentication.getUserAuthentication()==null?null:oAuth2Authentication.getUserAuthentication().getName();
+	* String clientId=oAuth2Authentication.getOAuth2Request().getClientId(); 
+	* log.info("资源用户名称=" + username+",客户端id="+clientId);  
+	 * 再根据客户端id和资源所有者名称查询数据库获得其他信息
+	 
+	
+	*认证码接收地址(回调地址)集合
+	  * 在认证码模式中，当用户同意发送授权码时，需要把认证码告知客户端，此时客户端必须提供一个支持get请求的url作为回调地址
+	  * 授权服务器会直接在 回调地址后面追加code=XXX参数进行重定向
+	 * 回调地址通常只有一个，但也支持多个，但只有跟用户同意授权的那个认证码才有效
+  	 
+ 
+	
+	*授权类型集合
+	  * 通常网关（本应用客户端）支持客户端模式和密码模式,第三方客户端支持客户端模式和认证码模式
+	 
+	 
+
+	*SCOPE集合
+	 * 在客户端访问系统时，需要对uri进行权限校验，
+	 * 当客户端的scopes包含资源对应的所有SCOPE时，访问资源才能成功
+	 * 浏览器发送/oauth/authorize请求时scope参数值不需要前缀SCOPE_
+	 
+	
+
+	*自动同意SCOPE集合
+	 * 在认证码模式中，当用户申请授权码时，授权系统会把客户端的申请的所有SCOPE告知用户，如果某一个SCOPE设置为自动同意，则不会告知
+	  
+	 
+	
+ 
+	 * token的过期时间(单位为秒)
+	 * @param clientId 客户端id
+	 * @return 客户端属性 
+	 */
+	 
+	public Map<String, Object> getClientByClientId(String clientId) {
+		// 从缓存或数据库中查找
+		return null;
 	}
 }

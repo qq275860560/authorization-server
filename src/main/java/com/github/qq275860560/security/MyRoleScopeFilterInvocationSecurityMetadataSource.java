@@ -14,7 +14,6 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
 import org.springframework.stereotype.Component;
 
-import com.github.qq275860560.service.OauthService;
 import com.github.qq275860560.service.SecurityService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 public class MyRoleScopeFilterInvocationSecurityMetadataSource implements FilterInvocationSecurityMetadataSource {
 
 	@Autowired
-	private OauthService oauthService;
-	@Autowired
 	private SecurityService securityService;
 
 	@Override
@@ -37,11 +34,9 @@ public class MyRoleScopeFilterInvocationSecurityMetadataSource implements Filter
 		log.debug("授权:获取url对应的ROLE权限和SCOPE权限");
 		HttpServletRequest request = ((FilterInvocation) object).getHttpRequest();
 		String requestURI = request.getRequestURI();
-		Set<String> set = oauthService.getScopesByUrI(requestURI);// 获取url及其正则对应角色/权限(ROLE_开头或SCOPE_开头),比如访问路径有/api/user/updateUser,应当查询/*,/api/*,/api/user/*,/api/user/updateUser对应的角色/权限并集
-		set.addAll(securityService.getRoleNamesByUrI(requestURI));
-		if (set == null) {
-			return Collections.EMPTY_LIST;
-		}
+		Set<String> set = securityService.getScopesByRequestURI(requestURI);// 获取url及其正则对应角色/权限(ROLE_开头或SCOPE_开头),比如访问路径有/api/user/updateUser,应当查询/*,/api/*,/api/user/*,/api/user/updateUser对应的角色/权限并集
+		set.addAll(securityService.getRoleNamesByRequestURI(requestURI));
+
 		Collection<ConfigAttribute> configAttributes = new ArrayList<>();
 		for (String roleName : set) {
 			ConfigAttribute configAttribute = new SecurityConfig(roleName);

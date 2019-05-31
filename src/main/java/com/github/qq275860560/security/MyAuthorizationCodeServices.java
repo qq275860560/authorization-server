@@ -22,7 +22,6 @@ import org.springframework.security.oauth2.provider.code.AuthorizationCodeServic
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.qq275860560.service.OauthService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,8 +38,7 @@ public class MyAuthorizationCodeServices implements AuthorizationCodeServices {
 	private RsaSigner rsaSigner;
 	@Autowired
 	private RsaVerifier rsaVerifier;
-	@Autowired
-	private OauthService oauthService;
+ 
 
 	@Override
 	public String createAuthorizationCode(OAuth2Authentication authentication) {

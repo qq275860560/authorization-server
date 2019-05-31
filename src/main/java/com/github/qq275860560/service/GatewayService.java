@@ -9,7 +9,7 @@ import org.springframework.security.jwt.crypto.sign.RsaVerifier;
  *
  */
 
-public abstract class ClientService {
+public abstract class GatewayService {
 	
 	
 	/**获取网关（客户端）的client_id和client_secret
@@ -26,6 +26,7 @@ public abstract class ClientService {
 			put("client_secret","123456");
 		}};
 	}
+	 
 	 
 	/**获取认证授权服务器的url
 	 *   网关访问 "/oauth/token","/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error"等接口需要知道认证授权服务器url前缀

@@ -23,7 +23,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.qq275860560.service.ClientService;
+import com.github.qq275860560.service.GatewayService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,16 +36,16 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 
 	private ObjectMapper objectMapper;
 	private RestTemplate  restTemplate;
-	private ClientService  clientService;
+	private GatewayService  gatewayService;
 	// curl -i -X GET "http://localhost:8080/login?username=username1&password=123456"
 
 	public MyUsernamePasswordAuthenticationFilter(ObjectMapper objectMapper, RestTemplate restTemplate,
-			ClientService clientService) {
+			GatewayService gatewayService) {
 		super.setPostOnly(false);
 		super.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/login"));
 		this.objectMapper = objectMapper;
 		this.restTemplate = restTemplate;
-		this.clientService = clientService;
+		this.gatewayService = gatewayService;
 	}
 
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -86,11 +86,11 @@ public class MyUsernamePasswordAuthenticationFilter extends UsernamePasswordAuth
 
 			ResponseEntity<Map> result = restTemplate
 					.exchange(
-							clientService.getAuthorizationServerUrl() + "/oauth/token?grant_type=password&username="
+							gatewayService.getAuthorizationServerUrl() + "/oauth/token?grant_type=password&username="
 									+ username + "&password=" + password,
 							HttpMethod.POST, new HttpEntity<>(new HttpHeaders() {
 								{
-									setBasicAuth(clientService.getClient().get("client_id"), clientService.getClient().get("client_secret"));
+									setBasicAuth(gatewayService.getClient().get("client_id"), gatewayService.getClient().get("client_secret"));
 								}
 							}), Map.class);
 			String access_token = (String) result.getBody().get("access_token");

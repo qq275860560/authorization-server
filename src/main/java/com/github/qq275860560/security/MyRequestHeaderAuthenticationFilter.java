@@ -1,6 +1,7 @@
 package com.github.qq275860560.security;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.FilterChain;
@@ -13,6 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -26,7 +29,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.qq275860560.service.ClientService;
+import com.github.qq275860560.service.GatewayService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,26 +40,24 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class MyRequestHeaderAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-	private RestTemplate  restTemplate;
-	private ClientService  clientService;
+	private GatewayService  gatewayService;
 
 	private MyUserDetailsService myUserDetailsService;
-
-	private MyAuthenticationEntryPoint myAuthenticationEntryPoint;
+ 
 
 	private ObjectMapper objectMapper = new ObjectMapper();
 
 	public MyRequestHeaderAuthenticationFilter(AuthenticationManager authenticationManager,
-			MyUserDetailsService myUserDetailsService, MyAuthenticationEntryPoint myAuthenticationEntryPoint,RestTemplate restTemplate, ClientService  clientService
+			MyUserDetailsService myUserDetailsService , GatewayService  gatewayService
 
 	) {
 
 		super.setAuthenticationManager(authenticationManager);
-		this.restTemplate=restTemplate;
-		this.clientService = clientService;
+ 
+		this.gatewayService = gatewayService;
 	
 		this.myUserDetailsService = myUserDetailsService;
-		this.myAuthenticationEntryPoint = myAuthenticationEntryPoint;
+	 
 
 	}
 
@@ -66,7 +67,7 @@ public class MyRequestHeaderAuthenticationFilter extends UsernamePasswordAuthent
 
 		log.debug("认证");
 		String header = ((HttpServletRequest) request).getHeader("Authorization");
-
+		
 		if (header == null || !header.startsWith("Bearer ")) {
 			chain.doFilter(request, response);
 			return;
@@ -74,7 +75,7 @@ public class MyRequestHeaderAuthenticationFilter extends UsernamePasswordAuthent
 
 		try {
 			String token = header.replaceAll("Bearer\\s+", "");				
-			String payload = JwtHelper.decodeAndVerify(token, clientService.getRsaVerifier()).getClaims();
+			String payload = JwtHelper.decodeAndVerify(token, gatewayService.getRsaVerifier()).getClaims();
 			String username = (String) objectMapper.readValue(payload, Map.class).get("user_name");
 			if (System.currentTimeMillis() / 1000 > (Integer) objectMapper.readValue(payload, Map.class).get("exp")) {
 				throw new Exception("token已过期");
@@ -89,8 +90,16 @@ public class MyRequestHeaderAuthenticationFilter extends UsernamePasswordAuthent
 
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 		} catch (Exception e) {
-			myAuthenticationEntryPoint.commence((HttpServletRequest) request, (HttpServletResponse) response,
-					new BadCredentialsException(e.getMessage(), e));
+			log.debug("认证失败", e);
+			((HttpServletResponse)response).setStatus(HttpStatus.UNAUTHORIZED.value());
+			response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+			response.getWriter().write(objectMapper.writeValueAsString(new HashMap<String, Object>() {
+				{
+					put("code", HttpStatus.UNAUTHORIZED.value());
+					put("msg", "认证失败");
+					put("data", e.getMessage());
+				}
+			}));
 			return;
 		}
 

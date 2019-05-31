@@ -9,22 +9,14 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.qq275860560.security.MyAccessDeniedHandler;
-import com.github.qq275860560.security.MyAuthenticationEntryPoint;
-import com.github.qq275860560.security.MyAuthenticationFailureHandler;
-import com.github.qq275860560.security.MyAuthenticationSuccessHandler;
-import com.github.qq275860560.security.MyLogoutHandler;
-import com.github.qq275860560.security.MyLogoutSuccessHandler;
 import com.github.qq275860560.security.MyRequestHeaderAuthenticationFilter;
-import com.github.qq275860560.security.MyRoleFilterInvocationSecurityMetadataSource;
 import com.github.qq275860560.security.MyUserDetailsService;
 import com.github.qq275860560.security.MyUsernamePasswordAuthenticationFilter;
-import com.github.qq275860560.service.ClientService;
+import com.github.qq275860560.service.GatewayService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,29 +33,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private RestTemplate  restTemplate;
 	@Autowired
-	private ClientService  clientService;
+	private GatewayService  gatewayService;
 	@Autowired
 	private MyUserDetailsService myUserDetailsService;
-	@Autowired
-	private MyLogoutSuccessHandler myLogoutSuccessHandler;
-	@Autowired
-	private MyLogoutHandler myLogoutHandler;
-	@Autowired
-	private MyAccessDeniedHandler myAccessDeniedHandler;
-	@Autowired
-	private MyAuthenticationFailureHandler myAuthenticationFailureHandler;
-	@Autowired
-	private MyAuthenticationSuccessHandler myAuthenticationSuccessHandler;
-	@Autowired
-	private MyAuthenticationEntryPoint myAuthenticationEntryPoint;
-
-	@Autowired
-	private MyRoleFilterInvocationSecurityMetadataSource myRoleFilterInvocationSecurityMetadataSource;
-
  
-
-	@Autowired
-	private PasswordEncoder passwordEncoder;
 
 	@Bean
 	@Override
@@ -91,11 +64,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 		
 		http.addFilterBefore(new MyRequestHeaderAuthenticationFilter( authenticationManager(),
-				 myUserDetailsService,  myAuthenticationEntryPoint, restTemplate,   clientService
+				 myUserDetailsService ,     gatewayService
 
 				) ,
 				UsernamePasswordAuthenticationFilter.class);
-		http.addFilterBefore(new MyUsernamePasswordAuthenticationFilter(objectMapper,restTemplate,clientService),
+		http.addFilterBefore(new MyUsernamePasswordAuthenticationFilter(objectMapper,restTemplate,gatewayService),
 				UsernamePasswordAuthenticationFilter.class);
 		    
 		http.requestMatchers().antMatchers( "/login", "/oauth/authorize", "/oauth/token", "/oauth/check_token",
@@ -104,10 +77,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 					http.authorizeRequests().antMatchers(  "/oauth/authorize", "/oauth/token", "/oauth/check_token",
 							"/oauth/token_key", "/oauth/confirm_access", "/oauth/error").permitAll();
 		  */
-				 
-
-				  //支持basic访问接口
-				  //支持?access_token访问接口
+		
 	}
 
 }

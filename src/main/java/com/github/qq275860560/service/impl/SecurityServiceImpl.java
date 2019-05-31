@@ -75,9 +75,10 @@ public class SecurityServiceImpl extends SecurityService {
 		return new HashSet<>(Arrays.asList(((String)user_cache.get(username).get("roleNames")).split(",")));
 	}
 	
-	private Map<String, Map<String, Object>> url_cache = new HashMap<String, Map<String, Object>>() {
+	private Map<String, Map<String, Object>> requestURI_cache = new HashMap<String, Map<String, Object>>() {
 		{
 
+			
 			put("/api/github/qq275860560/user/**", new HashMap<String, Object>() {//请注意正则表达式的写法，是两个*号
 				{
 					put("roleNames", "ROLE_ADMIN");// 只需此角色即可访问
@@ -115,11 +116,23 @@ public class SecurityServiceImpl extends SecurityService {
 				}
 			});			
 
-			put("/oauth2/github/qq275860560/client/pageClient", new HashMap<String, Object>() {
+	 
+			
+			put("/api/github/qq275860560/client/**", new HashMap<String, Object>() {//请注意正则表达式的写法，是两个*号
 				{
-					put("roleNames", "ROLE_ADMIN");
+					put("scopes", "SCOPE_USER");// 至少要此权限才能访问,通常开放平台的接口才需要设置 这个属性
 				}
-			});	
+			});
+			put("/api/github/qq275860560/client/saveClient", new HashMap<String, Object>() {
+				{
+					put("scopes", "SCOPE_ADMIN");// 至少要此权限才能访问,通常开放平台的接口才需要设置 这个属性
+				}
+			});
+			put("/api/github/qq275860560/client/getClient", new HashMap<String, Object>() {
+				{
+					put("scopes", "");// 至少要此权限才能访问,通常开放平台的接口才需要设置 这个属性
+				}
+			});
 		}
 	};
 
@@ -129,17 +142,17 @@ public class SecurityServiceImpl extends SecurityService {
 	 * 登录用户至少拥有一个角色，才能访问
 	 * 如果返回null或空集合或包含ROLE_ANONYMOUS，代表该url不需要权限控制，任何用户(包括匿名)用户都可以访问
 	 * 如果url符合某个正则表达式，应当把正则表达式的角色也返回，比如/api/a的角色为ROLE_1,ROLE_2, 而数据库中还存在/api/**的角色为ROLE_3,ROLE_4；由于/api/a属于正则表达式/api/*,所以应当返回ROLE_1,ROLE_2,ROLE_3,ROLE_4
-	 * @param url 请求路径（ip端口之后的路径）
+	 * @param requestURI 请求路径（ip端口之后的路径）
 	 * @return 权限集合
 	 */
 	@Override
-	public Set<String> getRoleNamesByUrI(String url) {// ROLE_开头
+	public Set<String> getRoleNamesByRequestURI(String requestURI) {// ROLE_开头
 		// 从缓存或数据库中查找
 		AntPathMatcher antPathMatcher = new AntPathMatcher();
 		Set<String> set = new HashSet<>();
-		for (String pattern : url_cache.keySet()) {
-			if (antPathMatcher.match(pattern, url)) {
-				Map<String, Object> map = (Map<String, Object>) url_cache.get(pattern);
+		for (String pattern : requestURI_cache.keySet()) {
+			if (antPathMatcher.match(pattern, requestURI)) {
+				Map<String, Object> map = (Map<String, Object>) requestURI_cache.get(pattern);
 				if (map == null)
 					continue;
 				String attributesString = (String) map.get("roleNames");
@@ -150,10 +163,75 @@ public class SecurityServiceImpl extends SecurityService {
 		}
 		return set;
 	}
+ 
+	@Override
+	public Set<String> getScopesByRequestURI(String requestURI) {//SCOPE_开头
+		// 从缓存或数据库中查找
+		AntPathMatcher antPathMatcher = new AntPathMatcher();
+		Set<String> set = new HashSet<>();
+		for (String pattern : requestURI_cache.keySet()) {
+			if (antPathMatcher.match(pattern, requestURI)) {
+				Map<String, Object> map = (Map<String, Object>) requestURI_cache.get(pattern);
+				if (map == null)
+					continue;
+				String attributesString = (String) map.get("scopes");
+				if (StringUtils.isEmpty(attributesString))
+					continue;
+				set.addAll(Arrays.asList(attributesString.split(",")));
+			}
+		}
+		return set;
+	}
+  
+	private Map<String, Map<String,Object>> client_cache = new HashMap<String, Map<String,Object>>() {
+		{
+			put("client1", new HashMap<String,Object>() {
+				{					
+					put("secret",new BCryptPasswordEncoder().encode("123456"));
+					put("registeredRedirectUris","http://localhost:8081/api/client1/getCode");
+					put("authorizedGrantTypes","password,authorization_code,refresh_token,client_credentials");
+					put("scopes","USER");//不需要前缀SCOPE_
+					put("autoApproveScopes","USER");//不需要前缀SCOPE_
+					put("accessTokenValiditySeconds",10*365*24*3600);
+			 
+				}
+			});
+			put("admin", new HashMap<String,Object>() {
+				{
+					put("secret",new BCryptPasswordEncoder().encode("123456"));
+					put("registeredRedirectUris","http://localhost:8081/api/admin/getCode");
+					put("authorizedGrantTypes","authorization_code,refresh_token,implicit,password,client_credentials");
 
-	 
+					put("scopes","ADMIN,USER");//不需要前缀SCOPE_
+					put("autoApproveScopes","ADMIN,USER");//不需要前缀SCOPE_
+					put("accessTokenValiditySeconds",10*365*24*3600);
+				}
+			});
+			
+			put("gateway", new HashMap<String,Object>() {//网关只支持密码模式，不需要
+				{
+					put("secret",new BCryptPasswordEncoder().encode("123456"));
+					put("registeredRedirectUris","http://localhost:8081/api/admin/getCode");
+					put("authorizedGrantTypes","refresh_token,implicit,password,client_credentials");
 
+					put("scopes","ADMIN,USER");//不需要前缀SCOPE_
+					put("autoApproveScopes","ADMIN,USER");//不需要前缀SCOPE_
+				
+					put("accessTokenValiditySeconds",10*365*24*3600);
+				}
+			});
+			
+			 
+		}
+	};
 	
+ 
+	
+	@Override
+	public Map<String, Object> getClientByClientId(String clientId) {
+		// 从缓存或数据库中查找
+		return  client_cache.get(clientId);  
+	}
 
 	
 }
