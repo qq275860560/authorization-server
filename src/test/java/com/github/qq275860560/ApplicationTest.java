@@ -1,5 +1,6 @@
 package com.github.qq275860560;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import ch.qos.logback.core.net.LoginAuthenticator;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -29,73 +31,8 @@ public class ApplicationTest {
 	@Autowired
 	private TestRestTemplate testRestTemplate;
 
-	@Test
-	public void login() throws Exception {
 
-		// ROLE为普通客户端登录
-
-		ResponseEntity<Map> response = testRestTemplate.exchange("/login?username=username1&password=123456",
-				HttpMethod.GET, null, Map.class);
-		String access_token = (String) response.getBody().get("access_token");
-		log.info("" + access_token);
-		Assert.assertTrue(access_token.length() > 0);
-
-		// 错误(没有认证)
-		response = testRestTemplate.exchange("/api/github/qq275860560/user/pageUser?pageNum=1&pageSize=10",
-				HttpMethod.GET, null, Map.class);
-		Assert.assertEquals(401, response.getStatusCode().value());
-
-		// get正常
-		response = testRestTemplate.exchange("/api/github/qq275860560/user/pageUser?pageNum=1&pageSize=10",
-				HttpMethod.GET, new HttpEntity<>(new HttpHeaders() {
-					{
-						setBearerAuth(access_token);
-					}
-				}), Map.class);
-		Assert.assertEquals(200, response.getStatusCode().value());
-		Assert.assertEquals(200, response.getBody().get("code"));
-
-		// save错误(没有权限)
-		response = testRestTemplate.exchange("/api/github/qq275860560/user/saveUser?username=username2", HttpMethod.GET,
-				new HttpEntity<>(new HttpHeaders() {
-					{
-						setBearerAuth(access_token);
-					}
-				}), Map.class);
-		Assert.assertEquals(403, response.getStatusCode().value());
-
-		// ROLE为管理员客户端登录
-		response = testRestTemplate.exchange("/login?username=admin&password=123456", HttpMethod.GET, null, Map.class);
-		String access_token2 = (String) response.getBody().get("access_token");
-		log.info("" + access_token2);
-		Assert.assertTrue(access_token2.length() > 0);
-
-		// 错误(没有认证)
-		response = testRestTemplate.exchange("/api/github/qq275860560/user/pageUser?pageNum=1&pageSize=10",
-				HttpMethod.GET, null, Map.class);
-		Assert.assertEquals(401, response.getStatusCode().value());
-
-		// get正常
-		response = testRestTemplate.exchange("/api/github/qq275860560/user/pageUser?pageNum=1&pageSize=10",
-				HttpMethod.GET, new HttpEntity<>(new HttpHeaders() {
-					{
-						setBearerAuth(access_token2);
-					}
-				}), Map.class);
-		Assert.assertEquals(200, response.getStatusCode().value());
-		Assert.assertEquals(200, response.getBody().get("code"));
-
-		// save正常
-		response = testRestTemplate.exchange("/api/github/qq275860560/user/saveUser?username=username2", HttpMethod.GET,
-				new HttpEntity<>(new HttpHeaders() {
-					{
-						setBearerAuth(access_token2);
-					}
-				}), Map.class);
-		Assert.assertEquals(200, response.getStatusCode().value());
-		Assert.assertEquals(200, response.getBody().get("code"));
-
-	}
+ 
 
 	@Test
 	public void oauth2_password() {
@@ -204,13 +141,14 @@ public class ApplicationTest {
 	public void oauth2_authorization_code() {
 		// SCOPE为普通客户端登录
 		ResponseEntity<Map> response = testRestTemplate.exchange("/login?username=username1&password=123456",
-				HttpMethod.GET, null, Map.class);
-		String tmp_access_token = (String) response.getBody().get("access_token");
+				HttpMethod.POST, null, Map.class);
+		List<String> session =   response.getHeaders().get("Set-Cookie");
 
 		response = testRestTemplate.exchange("/oauth/authorize?client_id=client1&response_type=code", HttpMethod.GET,
 				new HttpEntity<>(new HttpHeaders() {
 					{
-						setBearerAuth(tmp_access_token);
+						put("Cookie", session);
+						 
 					}
 				}), Map.class);
 		String location = response.getHeaders().getLocation().getRawQuery();
@@ -240,14 +178,15 @@ public class ApplicationTest {
 		Assert.assertEquals(403, response.getStatusCode().value());
 
 		// SCOPE为管理员客户端登录
-		response = testRestTemplate.exchange("/login?username=username1&password=123456", HttpMethod.GET, null,
-				Map.class);
-		String tmp_access_token2 = (String) response.getBody().get("access_token");
+		 response = testRestTemplate.exchange("/login?username=username1&password=123456",
+				HttpMethod.POST, null, Map.class);
+		List<String> session2 =   response.getHeaders().get("Set-Cookie");
+		
 
 		response = testRestTemplate.exchange("/oauth/authorize?client_id=admin&response_type=code", HttpMethod.GET,
 				new HttpEntity<>(new HttpHeaders() {
 					{
-						setBearerAuth(tmp_access_token2);
+						put("Cookie", session2);
 					}
 				}), Map.class);
 		location = response.getHeaders().getLocation().getRawQuery();
@@ -281,19 +220,23 @@ public class ApplicationTest {
 
 	@Test
 	public void oauth2_refresh_token() {
+	 
 		// SCOPE为普通客户端登录
-		ResponseEntity<Map> response = testRestTemplate.exchange("/login?username=username1&password=123456",
-				HttpMethod.GET, null, Map.class);
-		String tmp_access_token = (String) response.getBody().get("access_token");
+				ResponseEntity<Map> response = testRestTemplate.exchange("/login?username=username1&password=123456",
+						HttpMethod.POST, null, Map.class);
+				List<String> session =   response.getHeaders().get("Set-Cookie");
 
-		response = testRestTemplate.exchange("/oauth/authorize?client_id=client1&response_type=code", HttpMethod.GET,
-				new HttpEntity<>(new HttpHeaders() {
-					{
-						setBearerAuth(tmp_access_token);
-					}
-				}), Map.class);
-		String location = response.getHeaders().getLocation().getRawQuery();
-		String code = location.split("=")[1];
+				response = testRestTemplate.exchange("/oauth/authorize?client_id=client1&response_type=code", HttpMethod.GET,
+						new HttpEntity<>(new HttpHeaders() {
+							{
+								put("Cookie", session);
+								 
+							}
+						}), Map.class);
+				String location = response.getHeaders().getLocation().getRawQuery();
+				String code = location.split("=")[1];
+
+	 
 
 		response = testRestTemplate.exchange(
 				"/oauth/token?grant_type=authorization_code&client_id=client1&client_secret=123456&scope=USER&code="
@@ -326,19 +269,21 @@ public class ApplicationTest {
 		Assert.assertEquals(403, response.getStatusCode().value());
 
 		// SCOPE为管理员客户端登录
-		response = testRestTemplate.exchange("/login?username=username1&password=123456", HttpMethod.GET, null,
-				Map.class);
-		String tmp_access_token2 = (String) response.getBody().get("access_token");
+		 response = testRestTemplate.exchange("/login?username=username1&password=123456",
+					HttpMethod.POST, null, Map.class);
+			List<String> session2 =   response.getHeaders().get("Set-Cookie");
+			
 
-		response = testRestTemplate.exchange("/oauth/authorize?client_id=admin&response_type=code", HttpMethod.GET,
-				new HttpEntity<>(new HttpHeaders() {
-					{
-						setBearerAuth(tmp_access_token2);
-					}
-				}), Map.class);
-		location = response.getHeaders().getLocation().getRawQuery();
-		code = location.split("=")[1];
-
+			response = testRestTemplate.exchange("/oauth/authorize?client_id=admin&response_type=code", HttpMethod.GET,
+					new HttpEntity<>(new HttpHeaders() {
+						{
+							put("Cookie", session2);
+						}
+					}), Map.class);
+			location = response.getHeaders().getLocation().getRawQuery();
+			code = location.split("=")[1];
+			
+	
 		response = testRestTemplate.exchange(
 				"/oauth/token?grant_type=authorization_code&client_id=admin&client_secret=123456&scope=ADMIN&code="
 						+ code,
@@ -424,13 +369,14 @@ public class ApplicationTest {
 /**
 
 //传统
-token=`curl -i -X GET "http://localhost:8080/login?username=username1&password=123456" | grep access_token | awk -F "\"" '{print $4}'`
-echo 当前token为$token
-curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/pageUser?pageNum=1&pageSize=10" -H "Authorization:Bearer  $token" 
 
-token=`curl -i -X GET "http://localhost:8080/login?username=admin&password=123456" | grep access_token | awk -F "\"" '{print $4}'`
-echo 当前token为$token
-curl -i -X GET "http://localhost:8080/api/github/qq275860560/user/saveUser?username=username2" -H "Authorization:Bearer  $token" 
+session=`curl  -i -X POST 'http://localhost:8080/login?username=username1&password=123456'    | grep Set-Cookie | awk -F " " '{print $2}'`
+echo 当前session为$session
+curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/pageUser?pageNum=1&pageSize=10" -H "Cookie:$session" 
+
+session=`curl  -i -X POST 'http://localhost:8080/login?username=admin&password=123456'    | grep Set-Cookie | awk -F " " '{print $2}'`
+echo 当前session为$session
+curl -i -X GET "http://localhost:8080/api/github/qq275860560/user/saveUser?username=username2" -H "Cookie:$session" 
 
 //oauth2客户端模式
 token=`curl -i -X POST "http://client1:123456@localhost:8080/oauth/token?grant_type=client_credentials"  | grep access_token | awk -F "\"" '{print $4}'`

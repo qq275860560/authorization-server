@@ -62,22 +62,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.csrf().disable();
 		// 解决不允许显示在iframe的问题
 		http.headers().frameOptions().disable();
-		// 禁用headers缓存
-		http.headers().cacheControl();
-		// 禁用session
-		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-		
-		http.addFilterBefore(new MyBearerAuthenticationFilter( authenticationManager(),
-				 myUserDetailsService ,     securityService
+		http.formLogin().permitAll();
+		http.requestMatchers().antMatchers( "/login","/oauth/authorize", "/oauth/token", "/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error");
 
-				) ,
-				UsernamePasswordAuthenticationFilter.class);
-		http.addFilterBefore(new MyUsernamePasswordAuthenticationFilter(objectMapper,restTemplate,securityService),
-				UsernamePasswordAuthenticationFilter.class);
-		    
-		http.requestMatchers().antMatchers( "/login", "/oauth/authorize", "/oauth/token", "/oauth/check_token",
-				"/oauth/token_key", "/oauth/confirm_access", "/oauth/error");
-			/*	
+		http.authorizeRequests().antMatchers( "/login", "/oauth/authorize", "/oauth/token", "/oauth/check_token",
+				"/oauth/token_key", "/oauth/confirm_access", "/oauth/error").permitAll();
+		 http.authorizeRequests().anyRequest().authenticated();
+		//http.requestMatchers().antMatchers( "/oauth/authorize", "/oauth/token", "/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error");
+		/*	
 					http.authorizeRequests().antMatchers(  "/oauth/authorize", "/oauth/token", "/oauth/check_token",
 							"/oauth/token_key", "/oauth/confirm_access", "/oauth/error").permitAll();
 		  */

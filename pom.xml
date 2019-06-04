@@ -4,7 +4,7 @@
 
     <groupId>com.github.qq275860560</groupId>
 	<artifactId>github-qq275860560-authorization-server</artifactId>
-	<version>20190601</version>
+	<version>20190604</version>
 	<packaging>jar</packaging>
 	<name>github-qq275860560-authorization-server</name>
 	<description>github-qq275860560-authorization-server</description>	

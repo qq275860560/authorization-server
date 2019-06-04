@@ -9,8 +9,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-
-import com.github.qq275860560.security.MyAuthorizationCodeServices;
+ 
 import com.github.qq275860560.security.MyClientDetailsService;
 import com.github.qq275860560.security.MyJwtAccessTokenConverter;
 import com.github.qq275860560.security.MyJwtTokenStore;
@@ -34,8 +33,7 @@ public   class AuthorizationServerConfig extends AuthorizationServerConfigurerAd
 		private MyUserDetailsService myUserDetailsService;
 		@Autowired
 		private AuthenticationManager authenticationManager;
-		@Autowired
-		private MyAuthorizationCodeServices myAuthorizationCodeServices;
+ 
 
 		@Autowired
 		public MyJwtAccessTokenConverter myJwtAccessTokenConverter;
@@ -48,7 +46,7 @@ public   class AuthorizationServerConfig extends AuthorizationServerConfigurerAd
 			endpoints.reuseRefreshTokens(true);
 			endpoints.userDetailsService(myUserDetailsService);
 			endpoints.authenticationManager(authenticationManager);
-			endpoints.authorizationCodeServices(myAuthorizationCodeServices);
+	 
 			endpoints.accessTokenConverter(myJwtAccessTokenConverter);
 			endpoints.tokenStore(myJwtTokenStore);
 		}
@@ -57,7 +55,7 @@ public   class AuthorizationServerConfig extends AuthorizationServerConfigurerAd
 		public void configure(AuthorizationServerSecurityConfigurer oauthServer) {
 			oauthServer.allowFormAuthenticationForClients();// /oauth/confirm_access中有client_id和client_secret的会走ClientCredentialsTokenEndpointFilter
 			oauthServer.tokenKeyAccess("permitAll()"); // url:/oauth/token_key,exposes public key for token verification if using JWT tokens
-			oauthServer.checkTokenAccess("isAuthenticated()"); // url:/oauth/check_token allow check token
+			oauthServer.checkTokenAccess("isAuthenticated()"); // url:/oauth/check_token allow check token,访问tokenkey时需要经过认证
 		}
 	 
 
