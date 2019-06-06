@@ -2,18 +2,29 @@ package com.github.qq275860560.service;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.security.access.SecurityConfig;
+import org.springframework.security.access.vote.RoleVoter;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
+import org.springframework.security.oauth2.provider.vote.ScopeVoter;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author jiangyuanlin@163.com
  *
  */
+@Slf4j
 public abstract class SecurityService {
 	private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -26,10 +37,9 @@ public abstract class SecurityService {
 	 */
 	public String encode(CharSequence rawPassword) {
 		return passwordEncoder.encode(rawPassword);// spring推荐使用该方式加密
-		//return org.springframework.util.DigestUtils.md5DigestAsHex(rawPassword.toString().getBytes());
+		// return
+		// org.springframework.util.DigestUtils.md5DigestAsHex(rawPassword.toString().getBytes());
 	}
-
-	
 
 	/**用户密码匹配策略
 	 *   用户登录阶段,需要校验密码准确性
@@ -40,10 +50,9 @@ public abstract class SecurityService {
 	 */
 	public boolean matches(CharSequence rawPassword, String encodedPassword) {
 		return passwordEncoder.matches(rawPassword, encodedPassword);// spring推荐使用该方式匹配
-		//return org.springframework.util.DigestUtils.md5DigestAsHex(rawPassword.toString().getBytes()).equals(encodedPassword);
+		// return
+		// org.springframework.util.DigestUtils.md5DigestAsHex(rawPassword.toString().getBytes()).equals(encodedPassword);
 	}
-
-	
 
 	/** 登录用户密码
 	 * 在登录阶段时，要调用此接口获取到用户密码，之后跟加密后的登录密码比较
@@ -52,19 +61,18 @@ public abstract class SecurityService {
 	 * 用户发送的密码加密后会跟这个函数返回的密码相匹配，如果成功，则认证成功，并保存到session中，程序任何地方可以通过以下代码获取当前的username
 	 * String username=(String)SecurityContextHolder.getContext().getAuthentication().getName();  
 	 * 再根据用户名称查询数据库获得其他个人信息
-
+	
 	 
 	 * 登录用户 对应的角色名称集合
 	 * 在认证阶段时，要调用此接口初始化用户权限
 	 * 如果返回null或空集合，代表该用户没有权限，这类用户其实跟匿名用户没有什么区别
 	 * 如果username隶属于某高层次的角色或组织，应当把高层次的角色或组织对应的角色也返回，比如username的角色为ROLE_1, ROLE_1继承ROLE_2角色，并且username属于A部门，A部门拥有角色ROLE_3；所以应当返回ROLE_1,ROLE_2,ROLE_3
- 
-	 */
 	
-	public UserDetails getUserDetailsByUsername(String username) {
-		return null ;
-	}
+	 */
 
+	public UserDetails getUserDetailsByUsername(String username) {
+		return null;
+	}
 
 	/**
 	 * 根据请求路径查询对应的角色名称集合
@@ -75,17 +83,10 @@ public abstract class SecurityService {
 	 * @param requestURI 请求路径（ip端口之后的路径）
 	 * @return 权限集合
 	 */
-	public Set<String> getRoleNamesByRequestURI(String requestURI){//ROLE_开头
-		return Collections.EMPTY_SET;  // 数据库查出来的url角色权限，默认只要具有ROLE_ANONYMOUS角色的用户即可访问
-	 
+	public Set<String> getRoleNamesByRequestURI(String requestURI) {// ROLE_开头
+		return Collections.EMPTY_SET; // 数据库查出来的url角色权限，默认只要具有ROLE_ANONYMOUS角色的用户即可访问
+
 	}
-
-	
-
-
-	
-	
-	 
 
 	/**私钥字符串(参考https://github.com/qq275860560/common/blob/master/src/main/java/com/github/qq275860560/common/util/RsaUtil.java)
 	 * @return 私钥字符串
@@ -97,10 +98,10 @@ public abstract class SecurityService {
 	/**公钥字符串(参考https://github.com/qq275860560/common/blob/master/src/main/java/com/github/qq275860560/common/util/RsaUtil.java)
 	 * @return 公钥字符串 
 	 */
-	public String getPublicKeyBase64EncodeString(){
+	public String getPublicKeyBase64EncodeString() {
 		return "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIaDCe9NzAAxU+C3+TFEA0IhuKs+8KgKyr8zIT3TpivBTNhlymOe0U5+L1yK7nWAu5JehXX7snnb79cF2IjJKg8CAwEAAQ==";
 	}
-	
+
 	/**根据请求路径查询对应的SCOPE名称集合
 	 * 在客户端访问系统时，需要对uri进行校验，
 	 * 当客户端的SCOPE包含uri的所有SCOPE时，才能访问成功
@@ -108,13 +109,10 @@ public abstract class SecurityService {
 	 * @param requestURI 请求相对路径
 	 * @return SCOPE集合
 	 */
-	public Set<String> getScopesByRequestURI(String requestURI) {//SCOPE_开头
+	public Set<String> getScopesByRequestURI(String requestURI) {// SCOPE_开头
 		// 从缓存或数据库中查找
 		return Collections.EMPTY_SET;
 	}
-	
-	
-	
 
 	/**客户端密码
 	 * 在登录阶段时，要调用此接口获取到客户端密码，之后跟加密后的登录密码比较
@@ -135,49 +133,37 @@ public abstract class SecurityService {
 	  * 在认证码模式中，当用户同意发送授权码时，需要把认证码告知客户端，此时客户端必须提供一个支持get请求的url作为回调地址
 	  * 授权服务器会直接在 回调地址后面追加code=XXX参数进行重定向
 	 * 回调地址通常只有一个，但也支持多个，但只有跟用户同意授权的那个认证码才有效
-  	 
- 
+	 
+	
 	
 	*授权类型集合
 	  * 通常网关（本应用客户端）支持客户端模式和密码模式,第三方客户端支持客户端模式和认证码模式
 	 
 	 
-
+	
 	*SCOPE集合
 	 * 在客户端访问系统时，需要对uri进行权限校验，
 	 * 当客户端的scopes包含资源对应的所有SCOPE时，访问资源才能成功
 	 * 浏览器发送/oauth/authorize请求时scope参数值不需要前缀SCOPE_
 	 
 	
-
+	
 	*自动同意SCOPE集合
 	 * 在认证码模式中，当用户申请授权码时，授权系统会把客户端的申请的所有SCOPE告知用户，如果某一个SCOPE设置为自动同意，则不会告知
 	  
 	 
 	
- 
+	
 	 * token的过期时间(单位为秒)
 	 * @param clientId 客户端id
 	 * @return 客户端属性 
 	 */
-	 
+
 	public ClientDetails getClientDetailsByClientId(String clientId) {
 		// 从缓存或数据库中查找
 		return null;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 	/**获取网关（客户端）的client_id和client_secret
 	  *  一个应用通常服务器有3种，网关（客户端），资源服务器，认证授权服务器
 	  *  登陆时，用户通过浏览器带上账号username密码password访问网关的/login，网关通过oauth2密码模式带上其client_id,client_secret和username,password向认证授权服务器请求发出请求/oauth/token，再把响应回来的access_token返回到浏览器
@@ -192,18 +178,15 @@ public abstract class SecurityService {
 		baseClientDetails.setClientSecret("123456");
 		return baseClientDetails;
 	}
-	 
-	 
+
 	/**获取认证授权服务器的url
 	 *   网关访问 "/oauth/token","/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error"等接口需要知道认证授权服务器url前缀
 	 *  如果当前应用不是网关，可以忽略此接口
 	 * @return 认证授权服务器的url
 	 */
-	public String getAuthorizationServerUrl() {	 
-		return  "http://localhost:8080";
+	public String getAuthorizationServerUrl() {
+		return "http://localhost:8080";
 	}
-	
-	
 
 	/**
 	 * 获取认证授权服务器的公钥
@@ -213,6 +196,30 @@ public abstract class SecurityService {
 	 * @return 公钥
 	 */
 	public RsaVerifier getRsaVerifier() {
-		 return null;
+		return null;
 	}
+
+	public boolean decide(HttpServletRequest request, Authentication authentication) {
+		log.debug("授权:决策");
+		if (!(authentication instanceof OAuth2Authentication)) {
+			return false;
+		}
+		String requestURI = request.getRequestURI();
+
+		int result = new RoleVoter().vote(authentication, null, getRoleNamesByRequestURI(requestURI).stream()
+				.map(roleName -> new SecurityConfig(roleName)).collect(Collectors.toSet()));
+		if (result == org.springframework.security.access.AccessDecisionVoter.ACCESS_DENIED) {
+			return false;
+		}
+
+		result = new ScopeVoter().vote(authentication, null, getScopesByRequestURI(requestURI).stream()
+				.map(scope -> new SecurityConfig(scope)).collect(Collectors.toSet()));
+		if (result == org.springframework.security.access.AccessDecisionVoter.ACCESS_DENIED) {
+			return false;
+		}
+
+		return true;
+
+	}
+
 }

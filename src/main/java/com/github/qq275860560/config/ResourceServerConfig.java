@@ -1,50 +1,42 @@
 package com.github.qq275860560.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
-
-import com.github.qq275860560.security.MyDefaultTokenServices;
-import com.github.qq275860560.security.MyRoleScopeConsensusBased;
-import com.github.qq275860560.security.MyRoleScopeFilterInvocationSecurityMetadataSource;
+import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
 
 @Configuration
 @EnableResourceServer
 public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
-	@Autowired
-	private MyDefaultTokenServices myDefaultTokenServices;
-
 	@Override
-	public void configure(ResourceServerSecurityConfigurer resources) {
-		resources.tokenServices(myDefaultTokenServices);
+	public void configure(HttpSecurity http) throws Exception {
+		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		http.requestMatchers().antMatchers("/api/**");
+		http.authorizeRequests().antMatchers("/api/**").access("@securityService.decide(request,authentication)");
+
+	}
+
+	@Bean
+	public OAuth2WebSecurityExpressionHandler oAuth2WebSecurityExpressionHandler(
+			ApplicationContext applicationContext) {
+		OAuth2WebSecurityExpressionHandler expressionHandler = new OAuth2WebSecurityExpressionHandler();
+		expressionHandler.setApplicationContext(applicationContext);
+		return expressionHandler;
 	}
 
 	@Autowired
-	private MyRoleScopeFilterInvocationSecurityMetadataSource myRoleScopeFilterInvocationSecurityMetadataSource;
+	private OAuth2WebSecurityExpressionHandler expressionHandler;
 
-	@Autowired
-	private MyRoleScopeConsensusBased myRoleScopeConsensusBased;
-
-	
 	@Override
-	public void configure(HttpSecurity http) throws Exception {
-		http.requestMatchers().antMatchers("/api/**");
-		http.authorizeRequests().antMatchers("/api/**").authenticated();
-
-		http.authorizeRequests().withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
-			@Override
-			public <O extends FilterSecurityInterceptor> O postProcess(O o) {
-				o.setSecurityMetadataSource(myRoleScopeFilterInvocationSecurityMetadataSource);
-				o.setAccessDecisionManager(myRoleScopeConsensusBased);
-				return o;
-			}
-		});
+	public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+		resources.expressionHandler(expressionHandler);
 	}
 
 }

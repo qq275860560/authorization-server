@@ -18,10 +18,11 @@ public class MyPasswordEncoder extends BCryptPasswordEncoder {
 	@Autowired
 	private SecurityService securityService;
 
+	@Override
 	public String encode(CharSequence rawPassword) {
 		return securityService.encode(rawPassword);
 	}
-
+	@Override
 	public boolean matches(CharSequence rawPassword, String encodedPassword) {
 		return securityService.matches(rawPassword, encodedPassword);
 	}

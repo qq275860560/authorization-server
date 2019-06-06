@@ -395,9 +395,9 @@ echo 当前token为$token
 curl -i -X POST "http://localhost:8080/api/github/qq275860560/client/pageClient?access_token=$token"
 
 //oauth2认证码模式   
-token=`curl -i -X GET "http://localhost:8080/login?username=username1&password=123456" | grep access_token | awk -F "\"" '{print $4}'`
-echo 当前token为$token  
-code=`curl -i -X GET "http://localhost:8080/oauth/authorize?client_id=client1&response_type=code"  -H "Authorization:Bearer  $token"  | grep Location | cut -d'=' -f2` 
+session=`curl  -i -X POST 'http://localhost:8080/login?username=username1&password=123456'    | grep Set-Cookie | awk -F " " '{print $2}'`
+echo 当前session为$session 
+code=`curl -i -X GET "http://localhost:8080/oauth/authorize?client_id=client1&response_type=code"   -H "Cookie:$session"   | grep Location | cut -d'=' -f2` 
 echo 当前认证码为$code
 token=`curl -i -X POST "http://localhost:8080/oauth/token?grant_type=authorization_code&client_id=client1&client_secret=123456&scope=USER&code=$code"  | grep access_token | awk -F "\"" '{print $4}'`
 echo 当前token为$token
@@ -405,9 +405,9 @@ curl -i -X POST "http://localhost:8080/api/github/qq275860560/client/getClient?a
 
 
 //oauth2刷新token
-token=`curl -i -X GET "http://localhost:8080/login?username=username1&password=123456" | grep access_token | awk -F "\"" '{print $4}'`
-echo 当前token为$token
-code=`curl -i -X GET "http://localhost:8080/oauth/authorize?client_id=client1&response_type=code"  -H "Authorization:Bearer  $token"  | grep Location | cut -d'=' -f2` 
+session=`curl  -i -X POST 'http://localhost:8080/login?username=username1&password=123456'    | grep Set-Cookie | awk -F " " '{print $2}'`
+echo 当前session为$session
+code=`curl -i -X GET "http://localhost:8080/oauth/authorize?client_id=client1&response_type=code"   -H "Cookie:$session"   | grep Location | cut -d'=' -f2` 
 echo 当前认证码为$code
 refresh_token=`curl -i -X POST "http://localhost:8080/oauth/token?grant_type=authorization_code&client_id=client1&client_secret=123456&scope=USER&code=$code"  | grep refresh_token | awk -F "\"" '{print $12}'`
 echo 当前refresh_token为$refresh_token

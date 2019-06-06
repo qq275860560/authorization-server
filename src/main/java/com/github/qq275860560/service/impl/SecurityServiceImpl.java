@@ -37,33 +37,31 @@ import lombok.extern.slf4j.Slf4j;
  * @author jiangyuanlin@163.com
  *
  */
-@Component
+@Component("securityService")
 @Slf4j
 public class SecurityServiceImpl extends SecurityService {
 
-	
-
-	private Map<String, Map<String,Object>> user_cache = new HashMap<String, Map<String,Object>>() {
+	private Map<String, Map<String, Object>> user_cache = new HashMap<String, Map<String, Object>>() {
 		{
-			put("username1", 					
-					new HashMap<String,Object>(){{
-						put("password",new BCryptPasswordEncoder().encode("123456"));
-			            put("roleNames","ROLE_USER");//逗号分开
-					}}
-			);
-			put("username2", 					
-					new HashMap<String,Object>(){{
-						put("password",new BCryptPasswordEncoder().encode("123456"));
-			            put("roleNames","ROLE_ADMIN");	//逗号分开		         
-					}}
-			);
-			put("admin", 					
-					new HashMap<String,Object>(){{
-						put("password",new BCryptPasswordEncoder().encode("123456"));
-			            put("roleNames","ROLE_ADMIN,ROLE_USER");	//逗号分开		        
-					}});
-			
-			
+			put("username1", new HashMap<String, Object>() {
+				{
+					put("password", new BCryptPasswordEncoder().encode("123456"));
+					put("roleNames", "ROLE_USER");// 逗号分开
+				}
+			});
+			put("username2", new HashMap<String, Object>() {
+				{
+					put("password", new BCryptPasswordEncoder().encode("123456"));
+					put("roleNames", "ROLE_ADMIN"); // 逗号分开
+				}
+			});
+			put("admin", new HashMap<String, Object>() {
+				{
+					put("password", new BCryptPasswordEncoder().encode("123456"));
+					put("roleNames", "ROLE_ADMIN,ROLE_USER"); // 逗号分开
+				}
+			});
+
 		}
 	};
 
@@ -74,43 +72,40 @@ public class SecurityServiceImpl extends SecurityService {
 	 * 用户发送的密码加密后会跟这个函数返回的密码相匹配，如果成功，则认证成功，并保存到session中，程序任何地方可以通过以下代码获取当前的username
 	 * String username=(String)SecurityContextHolder.getContext().getAuthentication().getName();  
 	 * 再根据用户名称查询数据库获得其他个人信息
-
+	
 	 
 	 * 登录用户 对应的角色名称集合
 	 * 在认证阶段时，要调用此接口初始化用户权限
 	 * 如果返回null或空集合，代表该用户没有权限，这类用户其实跟匿名用户没有什么区别
 	 * 如果username隶属于某高层次的角色或组织，应当把高层次的角色或组织对应的角色也返回，比如username的角色为ROLE_1, ROLE_1继承ROLE_2角色，并且username属于A部门，A部门拥有角色ROLE_3；所以应当返回ROLE_1,ROLE_2,ROLE_3
- 
-	 */
 	
+	 */
+
 	@Override
 	public UserDetails getUserDetailsByUsername(String username) {
 		// 从缓存或数据库中查找
-		Map<String, Object> map= user_cache.get(username) ;//查询数据库
-		
-		String password = (String)map.get("password");
-		 
+		Map<String, Object> map = user_cache.get(username);// 查询数据库
+
+		String password = (String) map.get("password");
+
 		boolean enabled = true;// 帐号是否可用
 		boolean accountNonExpired = true;// 帐户是否过期
 		boolean credentialsNonExpired = true;// 帐户密码是否过期，一般有的密码要求性高的系统会使用到，比较每隔一段时间就要求用户重置密码
 		boolean accountNonLocked = true;// 帐户是否被冻结
 
-		String roleNames = (String)map.get("roleNames");
+		String roleNames = (String) map.get("roleNames");
 		// 初始化用户的权限
-		List<GrantedAuthority> grantedAuthorities = AuthorityUtils
-				.commaSeparatedStringToAuthorityList(roleNames);
+		List<GrantedAuthority> grantedAuthorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roleNames);
 		// controller方法参数通过@AuthenticationPrincipal可以获得该对象
 		return new org.springframework.security.core.userdetails.User(username, password, enabled, accountNonExpired,
 				credentialsNonExpired, accountNonLocked, grantedAuthorities);
 
 	}
-	 
-	
+
 	private Map<String, Map<String, Object>> requestURI_cache = new HashMap<String, Map<String, Object>>() {
 		{
 
-			
-			put("/api/github/qq275860560/user/**", new HashMap<String, Object>() {//请注意正则表达式的写法，是两个*号
+			put("/api/github/qq275860560/user/**", new HashMap<String, Object>() {// 请注意正则表达式的写法，是两个*号
 				{
 					put("roleNames", "ROLE_ADMIN");// 只需此角色即可访问
 				}
@@ -145,11 +140,9 @@ public class SecurityServiceImpl extends SecurityService {
 				{
 					put("roleNames", "");
 				}
-			});			
+			});
 
-	 
-			
-			put("/api/github/qq275860560/client/**", new HashMap<String, Object>() {//请注意正则表达式的写法，是两个*号
+			put("/api/github/qq275860560/client/**", new HashMap<String, Object>() {// 请注意正则表达式的写法，是两个*号
 				{
 					put("scopes", "SCOPE_USER");// 至少要此权限才能访问,通常开放平台的接口才需要设置 这个属性
 				}
@@ -194,9 +187,9 @@ public class SecurityServiceImpl extends SecurityService {
 		}
 		return set;
 	}
- 
+
 	@Override
-	public Set<String> getScopesByRequestURI(String requestURI) {//SCOPE_开头
+	public Set<String> getScopesByRequestURI(String requestURI) {// SCOPE_开头
 		// 从缓存或数据库中查找
 		AntPathMatcher antPathMatcher = new AntPathMatcher();
 		Set<String> set = new HashSet<>();
@@ -213,95 +206,104 @@ public class SecurityServiceImpl extends SecurityService {
 		}
 		return set;
 	}
-  
-	private Map<String, Map<String,Object>> client_cache = new HashMap<String, Map<String,Object>>() {
+
+	private Map<String, Map<String, Object>> client_cache = new HashMap<String, Map<String, Object>>() {
 		{
-			put("client1", new HashMap<String,Object>() {
-				{					
-					put("secret",new BCryptPasswordEncoder().encode("123456"));
-					put("registeredRedirectUris","http://localhost:8081/api/client1/getCode");
-					put("authorizedGrantTypes","password,authorization_code,refresh_token,client_credentials");
-					put("scopes","USER");//不需要前缀SCOPE_,//逗号分开
-					put("autoApproveScopes","USER");//不需要前缀SCOPE_,//逗号分开
-					put("accessTokenValiditySeconds",10*365*24*3600);
-			 
-				}
-			});
-			put("admin", new HashMap<String,Object>() {
+			put("client1", new HashMap<String, Object>() {
 				{
-					put("secret",new BCryptPasswordEncoder().encode("123456"));
-					put("registeredRedirectUris","http://localhost:8081/api/admin/getCode");
-					put("authorizedGrantTypes","authorization_code,refresh_token,implicit,password,client_credentials");
+					put("secret", new BCryptPasswordEncoder().encode("123456"));
+					put("registeredRedirectUris", "http://localhost:8081/api/client1/getCode");
+					put("authorizedGrantTypes", "password,authorization_code,refresh_token,client_credentials");
+					put("scopes", "USER");// 不需要前缀SCOPE_,//逗号分开.//只能访问SCOPE_USER的url
+					put("autoApproveScopes", "USER");// 不需要前缀SCOPE_,//逗号分开
+					put("accessTokenValiditySeconds", 10 * 365 * 24 * 3600);
 
-					put("scopes","ADMIN,USER");//不需要前缀SCOPE_,//逗号分开
-					put("autoApproveScopes","ADMIN,USER");//不需要前缀SCOPE_,//逗号分开
-					put("accessTokenValiditySeconds",10*365*24*3600);
 				}
 			});
-			
-			put("gateway", new HashMap<String,Object>() {//网关只支持密码模式，不需要
+			put("admin", new HashMap<String, Object>() {
 				{
-					put("secret",new BCryptPasswordEncoder().encode("123456"));
-					put("registeredRedirectUris","http://localhost:8081/api/admin/getCode");
-					put("authorizedGrantTypes","refresh_token,implicit,password,client_credentials");
+					put("secret", new BCryptPasswordEncoder().encode("123456"));
+					put("registeredRedirectUris", "http://localhost:8081/api/admin/getCode");
+					put("authorizedGrantTypes",
+							"authorization_code,refresh_token,implicit,password,client_credentials");
 
-					put("scopes","ADMIN,USER");//不需要前缀SCOPE_,//逗号分开
-					put("autoApproveScopes","ADMIN,USER");//不需要前缀SCOPE_,//逗号分开
-				
-					put("accessTokenValiditySeconds",10*365*24*3600);
+					put("scopes", "ADMIN,USER");// 不需要前缀SCOPE_,//逗号分开，//只能访问SCOPE_ADMIN或SCOPE_USER或2者的url
+					put("autoApproveScopes", "ADMIN,USER");// 不需要前缀SCOPE_,//逗号分开
+					put("accessTokenValiditySeconds", 10 * 365 * 24 * 3600);
 				}
 			});
-			
-			 
+
+			put("app1", new HashMap<String, Object>() {// 网关只支持密码模式，不需要
+				{
+					put("secret", new BCryptPasswordEncoder().encode("123456"));
+					put("registeredRedirectUris",
+							"http://localhost:8081/login,http://localhost:8082/login,http://localhost:8083/login,http://localhost:8084/login");
+					put("authorizedGrantTypes", "authorization_code,refresh_token");
+
+					put("scopes", "USER");// 不需要前缀SCOPE_,//逗号分开，//只能访问SCOPE_USER的url
+					put("autoApproveScopes", "USER");// 不需要前缀SCOPE_,//逗号分开
+
+					put("accessTokenValiditySeconds", 10 * 365 * 24 * 3600);
+				}
+			});
+
+			put("app2", new HashMap<String, Object>() {// 网关只支持密码模式，不需要
+				{
+					put("secret", new BCryptPasswordEncoder().encode("123456"));
+					put("registeredRedirectUris",
+							"http://localhost:8081/login,http://localhost:8082/login,http://localhost:8083/login,http://localhost:8084/login");
+					put("authorizedGrantTypes", "authorization_code,refresh_token");
+
+					put("scopes", "ADMIN");// 不需要前缀SCOPE_,//逗号分开，//只能访问SCOPE_ADMIN的url
+					put("autoApproveScopes", "ADMIN");// 不需要前缀SCOPE_,//逗号分开
+
+					put("accessTokenValiditySeconds", 10 * 365 * 24 * 3600);
+				}
+			});
+
 		}
 	};
-	
- 
-	
+
 	@Override
 	public ClientDetails getClientDetailsByClientId(String clientId) {
 		// 从缓存或数据库中查找
-		Map<String, Object> map=client_cache.get(clientId);//查询数据库
+		Map<String, Object> map = client_cache.get(clientId);// 查询数据库
 		BaseClientDetails baseClientDetails = new BaseClientDetails();
 		baseClientDetails.setClientId(clientId);
-		baseClientDetails.setClientSecret((String)map.get("secret"));
+		baseClientDetails.setClientSecret((String) map.get("secret"));
 		// 接收认证码的url
-		Set<String> registeredRedirectUris = new HashSet<String>(Arrays.asList( ((String)map.get("registeredRedirectUris")).split(",")));
-	 
-			baseClientDetails.setRegisteredRedirectUri(registeredRedirectUris  );
-		 
-		Set<String>  authorizedGrantTypes = new HashSet<String>(Arrays.asList( ((String)map.get("authorizedGrantTypes")).split(",")));
-	 
-		baseClientDetails.setAuthorizedGrantTypes(
-				authorizedGrantTypes);
-		 
+		if (map.get("registeredRedirectUris") != null) {
+			Set<String> registeredRedirectUris = new HashSet<String>(
+					Arrays.asList(((String) map.get("registeredRedirectUris")).split(",")));
+
+			baseClientDetails.setRegisteredRedirectUri(registeredRedirectUris);
+		}
+		if (map.get("authorizedGrantTypes") != null) {
+			Set<String> authorizedGrantTypes = new HashSet<String>(
+					Arrays.asList(((String) map.get("authorizedGrantTypes")).split(",")));
+
+			baseClientDetails.setAuthorizedGrantTypes(authorizedGrantTypes);
+		}
 		// 客户端的权限
-		Set<String> scopes= new HashSet<String>(Arrays.asList( ((String)map.get("scopes")).split(",")));
-	 
-			baseClientDetails.setScope(scopes);		
-	 
-		Set<String> autoApproveScopes=new HashSet<String>(Arrays.asList( ((String)map.get("autoApproveScopes")).split(",")));
-	 
+		if (map.get("scopes") != null) {
+			Set<String> scopes = new HashSet<String>(Arrays.asList(((String) map.get("scopes")).split(",")));
+
+			baseClientDetails.setScope(scopes);
+		}
+
+		if (map.get("autoApproveScopes") != null) {
+			Set<String> autoApproveScopes = new HashSet<String>(
+					Arrays.asList(((String) map.get("autoApproveScopes")).split(",")));
+
 			baseClientDetails.setAutoApproveScopes(autoApproveScopes);
-	 
-		baseClientDetails.setAccessTokenValiditySeconds((Integer)map.get("accessTokenValiditySeconds")   );
-	
+		}
+		if (map.get("accessTokenValiditySeconds") != null) {
+			baseClientDetails.setAccessTokenValiditySeconds((Integer) map.get("accessTokenValiditySeconds"));
+		}
 		return baseClientDetails;
- 
+
 	}
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	public Map<String, String> getClient() {
 		return new HashMap<String, String>() {
 			{
@@ -340,7 +342,8 @@ public class SecurityServiceImpl extends SecurityService {
 							}
 						}), Map.class);
 				String public_key = (String) result.getBody().get("value");
-				public_key=public_key.replace("-----BEGIN PUBLIC KEY-----\n", "").replace("\n-----END PUBLIC KEY-----", "");
+				public_key = public_key.replace("-----BEGIN PUBLIC KEY-----\n", "")
+						.replace("\n-----END PUBLIC KEY-----", "");
 				byte[] keyBytes = Base64Utils.decode(public_key.getBytes());
 				X509EncodedKeySpec keySpec_publicKey = new X509EncodedKeySpec(keyBytes);
 				KeyFactory keyFactory_publicKey = KeyFactory.getInstance("RSA");
