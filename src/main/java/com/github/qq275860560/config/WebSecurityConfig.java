@@ -38,11 +38,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		// 解决不允许显示在iframe的问题
 		http.headers().frameOptions().disable();
 		http.formLogin().permitAll();
-		http.requestMatchers().antMatchers("/login", "/oauth/authorize", "/oauth/token", "/oauth/check_token",
+		http.logout();
+		http.requestMatchers().antMatchers("/login", "/logout", "/oauth/authorize", "/oauth/token", "/oauth/check_token",
 				"/oauth/token_key", "/oauth/confirm_access", "/oauth/error");
-
-		http.authorizeRequests().antMatchers("/oauth/authorize", "/oauth/token", "/oauth/check_token",
-				"/oauth/token_key", "/oauth/confirm_access", "/oauth/error").permitAll();
+		http.authorizeRequests().antMatchers("/oauth/authorize", "/oauth/token", "/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error").permitAll();
 
 	}
 
