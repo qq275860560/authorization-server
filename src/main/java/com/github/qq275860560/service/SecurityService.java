@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.access.vote.RoleVoter;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -201,7 +202,7 @@ public abstract class SecurityService {
 
 	public boolean decide(HttpServletRequest request, Authentication authentication) {
 		log.debug("授权:决策");
-		if (!(authentication instanceof OAuth2Authentication)) {
+		if (!(authentication instanceof OAuth2Authentication) && !(authentication instanceof UsernamePasswordAuthenticationToken)) {
 			return false;
 		}
 		String requestURI = request.getRequestURI();

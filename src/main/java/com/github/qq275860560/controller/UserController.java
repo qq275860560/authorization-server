@@ -25,14 +25,15 @@ public class UserController {
 
  
 
-	/*  curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/pageUser?pageNum=1&pageSize=10" -H "Authorization:Bearer  eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzM4MTc4ODN9.ALDkjrDct9yazycSBTsoHeig2oZPa0zvLMtUWM2pg_FxubYmAxhXJDWSqxFBVybhHuszETKFJPOl1nj4YxkajQ" 
-	 *  curl -i -X POST "http://username1:password1@localhost:8080/api/github/qq275860560/user/pageUser?pageNum=1&pageSize=10" 
-	*/
+	/*  curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/pageUser?pageNum=1&pageSize=10" -H "Authorization:Bearer  eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzQ1NDY2ODIsImF1dGhvcml0aWVzIjpbIlJPTEVfVVNFUiJdLCJqdGkiOiJkODMzMDMyNi03MWRkLTRiNTgtOTk4Yi04OGJlNThlMmQxNTUifQ.Osw9GC9SuQQ3ESfqEFSLm0TJlsYXcTOrs5KtmZd72O91NcGSFDaoBl8R3m4DkOWjtH7syM67A8RbID-CiI43jw" 
+	 *  curl -i -X POST "http://admin:123456@localhost:8080/api/github/qq275860560/user/pageUser?pageNum=1&pageSize=10" 
+	 */
 	@RequestMapping(value = "/api/github/qq275860560/user/pageUser")
 	public Map<String, Object> pageUser(@RequestParam(required=false) Integer pageNum,@RequestParam(required=false) Integer pageSize)  throws Exception{
 		String currentLoginUsername=(String)SecurityContextHolder.getContext().getAuthentication().getName();
 		log.info("当前登录用户=" + currentLoginUsername);
 		//模拟数据库执行
+		log.info("数据库执行");
 		Map<String, Object> data = new HashMap<String,Object>() {{			
 			put("total", 2);
 			put("pageList", Arrays.asList(new HashMap<String, Object>() {
@@ -60,13 +61,15 @@ public class UserController {
 	}
 
 	
-	/* curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/listUser" -H "Authorization:Bearer   eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzMyNDk3Njl9.ELXDySOUIE1oq1OuRG0GHh7sUIFYxbr92Mlpp6RgOMWpTIxhpxV5_0qrI52BtsabDCtAst611KXqYZckGOBRAg" 	 
-	*/
+	/* curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/listUser" -H "Authorization:Bearer   eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzQ1NDY2ODIsImF1dGhvcml0aWVzIjpbIlJPTEVfVVNFUiJdLCJqdGkiOiJkODMzMDMyNi03MWRkLTRiNTgtOTk4Yi04OGJlNThlMmQxNTUifQ.Osw9GC9SuQQ3ESfqEFSLm0TJlsYXcTOrs5KtmZd72O91NcGSFDaoBl8R3m4DkOWjtH7syM67A8RbID-CiI43jw" 	 
+	 * curl -i -X POST "http://admin:123456@localhost:8080/api/github/qq275860560/user/listUser"
+	 */
 	@RequestMapping(value = "/api/github/qq275860560/user/listUser")
 	public Map<String, Object> listUser(@RequestParam(required=false) String username )  throws Exception{
 		String currentLoginUsername=(String)SecurityContextHolder.getContext().getAuthentication().getName();
 		log.info("当前登录用户=" + currentLoginUsername);
 		//模拟数据库执行
+		log.info("数据库执行");
 		List<Map<String, Object>> data = Arrays.asList(new HashMap<String, Object>() {
 			{
 				put("userId", "1");
@@ -89,14 +92,15 @@ public class UserController {
 		};
 	}
 	
-	/*  curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/getUser?id=1" -H "Authorization:Bearer   eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzMyNDk3Njl9.ELXDySOUIE1oq1OuRG0GHh7sUIFYxbr92Mlpp6RgOMWpTIxhpxV5_0qrI52BtsabDCtAst611KXqYZckGOBRAg"
-	 *  
+	/*  curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/getUser?id=1" -H "Authorization:Bearer   eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzQ1NDY2ODIsImF1dGhvcml0aWVzIjpbIlJPTEVfVVNFUiJdLCJqdGkiOiJkODMzMDMyNi03MWRkLTRiNTgtOTk4Yi04OGJlNThlMmQxNTUifQ.Osw9GC9SuQQ3ESfqEFSLm0TJlsYXcTOrs5KtmZd72O91NcGSFDaoBl8R3m4DkOWjtH7syM67A8RbID-CiI43jw"
+	 *  curl -i -X POST "http://admin:123456@localhost:8080/api/github/qq275860560/user/getUser?id=1" 
 	 */
  	@RequestMapping(value = "/api/github/qq275860560/user/getUser")
 	public Map<String, Object> getUser(@RequestParam(required=true) String id)  throws Exception{
 		String currentLoginUsername=(String)SecurityContextHolder.getContext().getAuthentication().getName();
 		log.info("当前登录用户=" + currentLoginUsername);
 		//模拟数据库执行
+		log.info("数据库执行");
 		Map<String, Object> data=new HashMap<String, Object>() {
 			{
 				put("userId", id);
@@ -114,9 +118,9 @@ public class UserController {
 	}
 	
 	
-	/* curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/saveUser?username=admin2" -H "Authorization:Bearer   eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzMyNDk3Njl9.ELXDySOUIE1oq1OuRG0GHh7sUIFYxbr92Mlpp6RgOMWpTIxhpxV5_0qrI52BtsabDCtAst611KXqYZckGOBRAg"
-	   
-	*/
+	/* curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/saveUser?username=admin2" -H "Authorization:Bearer   eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzQ1NDY2ODIsImF1dGhvcml0aWVzIjpbIlJPTEVfVVNFUiJdLCJqdGkiOiJkODMzMDMyNi03MWRkLTRiNTgtOTk4Yi04OGJlNThlMmQxNTUifQ.Osw9GC9SuQQ3ESfqEFSLm0TJlsYXcTOrs5KtmZd72O91NcGSFDaoBl8R3m4DkOWjtH7syM67A8RbID-CiI43jw"
+	 * curl -i -X POST "http://admin:123456@localhost:8080/api/github/qq275860560/user/saveUser?username=admin2"  
+	 */
 	@RequestMapping(value = "/api/github/qq275860560/user/saveUser")
 	public Map<String, Object> saveUser(@RequestParam(required=true) String username)  throws Exception{
 		String currentLoginUsername=(String)SecurityContextHolder.getContext().getAuthentication().getName();
@@ -133,9 +137,9 @@ public class UserController {
 	}
 	
 	
-	/* curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/updateUser?username=admin2"  -H "Authorization:Bearer   eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzMyNDk3Njl9.ELXDySOUIE1oq1OuRG0GHh7sUIFYxbr92Mlpp6RgOMWpTIxhpxV5_0qrI52BtsabDCtAst611KXqYZckGOBRAg" 
-	   
-	*/
+	/* curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/updateUser?username=admin2"  -H "Authorization:Bearer   eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzQ1NDY2ODIsImF1dGhvcml0aWVzIjpbIlJPTEVfVVNFUiJdLCJqdGkiOiJkODMzMDMyNi03MWRkLTRiNTgtOTk4Yi04OGJlNThlMmQxNTUifQ.Osw9GC9SuQQ3ESfqEFSLm0TJlsYXcTOrs5KtmZd72O91NcGSFDaoBl8R3m4DkOWjtH7syM67A8RbID-CiI43jw" 
+	 * curl -i -X POST "http://admin:123456@localhost:8080/api/github/qq275860560/user/updateUser?username=admin2"  
+	 */
 	@RequestMapping(value = "/api/github/qq275860560/user/updateUser")
 	public Map<String, Object> updateUser(
 			@RequestParam(required=true) String username)  throws Exception{
@@ -152,9 +156,9 @@ public class UserController {
 		};
 	}
 	
-	/* curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/deleteUser?id=1" -H "Authorization:Bearer   eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzMyNDk3Njl9.ELXDySOUIE1oq1OuRG0GHh7sUIFYxbr92Mlpp6RgOMWpTIxhpxV5_0qrI52BtsabDCtAst611KXqYZckGOBRAg" 
-	   curl -i -X POST "http://username1:password1@localhost:8080/api/github/qq275860560/user/deleteUser?id=1"
-	*/
+	/* curl -i -X POST "http://localhost:8080/api/github/qq275860560/user/deleteUser?id=1" -H "Authorization:Bearer   eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJ1c2VybmFtZTEiLCJleHAiOjE4NzQ1NDY2ODIsImF1dGhvcml0aWVzIjpbIlJPTEVfVVNFUiJdLCJqdGkiOiJkODMzMDMyNi03MWRkLTRiNTgtOTk4Yi04OGJlNThlMmQxNTUifQ.Osw9GC9SuQQ3ESfqEFSLm0TJlsYXcTOrs5KtmZd72O91NcGSFDaoBl8R3m4DkOWjtH7syM67A8RbID-CiI43jw" 
+	 * curl -i -X POST "http://admin:123456@localhost:8080/api/github/qq275860560/user/deleteUser?id=1"
+	 */
  	@RequestMapping(value = "/api/github/qq275860560/user/deleteUser")
 	public Map<String, Object> deleteUser(
 			@RequestParam(required=true) String id)  throws Exception{
