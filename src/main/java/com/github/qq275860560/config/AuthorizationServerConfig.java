@@ -55,7 +55,8 @@ public   class AuthorizationServerConfig extends AuthorizationServerConfigurerAd
 		public void configure(AuthorizationServerSecurityConfigurer oauthServer) {
 			oauthServer.allowFormAuthenticationForClients();// /oauth/confirm_access中有client_id和client_secret的会走ClientCredentialsTokenEndpointFilter
 			oauthServer.tokenKeyAccess("permitAll()"); // url:/oauth/token_key,exposes public key for token verification if using JWT tokens
-			oauthServer.checkTokenAccess("isAuthenticated()"); // url:/oauth/check_token allow check token,访问tokenkey时需要经过认证
+			//oauthServer.checkTokenAccess("isAuthenticated()"); // url:/oauth/check_token allow check token,访问tokenkey时需要经过认证
+			oauthServer.checkTokenAccess("permitAll()");
 		}
 	 
 

@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
@@ -25,23 +24,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		return super.authenticationManagerBean();
 	}
 
-	@Override
-	public void configure(WebSecurity web) throws Exception {
-		web.ignoring().antMatchers("/**/*.html", "/**/*.css", "/**/*.woff", "/**/*.woff2", "/**/*.js", "/**/*.jpg",
-				"/**/*.png", "/**/*.ico");
-	}
-
+	 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.cors();
 		http.csrf().disable();
-		// 解决不允许显示在iframe的问题
 		http.headers().frameOptions().disable();
-		http.formLogin().permitAll();
-		http.logout();
-		http.requestMatchers().antMatchers("/login", "/logout", "/oauth/authorize", "/oauth/token", "/oauth/check_token",
-				"/oauth/token_key", "/oauth/confirm_access", "/oauth/error");
-		http.authorizeRequests().antMatchers("/oauth/authorize", "/oauth/token", "/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error").permitAll();
+		http.formLogin() .and().logout() ;
+		//http.authorizeRequests().anyRequest().permitAll();
+		//http.requestMatchers().antMatchers("/login","/logout", "/oauth/**")	.and().authorizeRequests().anyRequest().permitAll();
 
 	}
 

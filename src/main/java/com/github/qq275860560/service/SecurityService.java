@@ -13,10 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.vote.ScopeVoter;
 
 import lombok.extern.slf4j.Slf4j;
@@ -164,42 +162,7 @@ public abstract class SecurityService {
 		// 从缓存或数据库中查找
 		return null;
 	}
-
-	/**获取网关（客户端）的client_id和client_secret
-	  *  一个应用通常服务器有3种，网关（客户端），资源服务器，认证授权服务器
-	  *  登陆时，用户通过浏览器带上账号username密码password访问网关的/login，网关通过oauth2密码模式带上其client_id,client_secret和username,password向认证授权服务器请求发出请求/oauth/token，再把响应回来的access_token返回到浏览器
-	  *  网关访问 "/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error"等接口也需要client_id和client_secret
-	  *  所以网关需要一个client_id和client_secret
-	  * 如果当前应用不是网关，可以忽略此接口
-	 * @return 网关（客户端）的client_id和client_secret
-	 */
-	public ClientDetails getClientDetails() {
-		BaseClientDetails baseClientDetails = new BaseClientDetails();
-		baseClientDetails.setClientId("gateway");
-		baseClientDetails.setClientSecret("123456");
-		return baseClientDetails;
-	}
-
-	/**获取认证授权服务器的url
-	 *   网关访问 "/oauth/token","/oauth/check_token","/oauth/token_key", "/oauth/confirm_access", "/oauth/error"等接口需要知道认证授权服务器url前缀
-	 *  如果当前应用不是网关，可以忽略此接口
-	 * @return 认证授权服务器的url
-	 */
-	public String getAuthorizationServerUrl() {
-		return "http://localhost:8080";
-	}
-
-	/**
-	 * 获取认证授权服务器的公钥
-	 * 默认第一次访问的时候，加载认证授权服务器的公钥,
-	 * 如果应用本身也是认证服务器读取配置文件
-	 * 如果认证授权逻辑不再该应用中，通过默认的/oauth/token_key加载公钥
-	 * @return 公钥
-	 */
-	public RsaVerifier getRsaVerifier() {
-		return null;
-	}
-
+ 
 	public boolean decide(HttpServletRequest request, Authentication authentication) {
 		log.debug("授权:决策");
 		if (!(authentication instanceof OAuth2Authentication) && !(authentication instanceof UsernamePasswordAuthenticationToken)) {

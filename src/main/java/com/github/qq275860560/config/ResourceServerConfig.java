@@ -19,25 +19,24 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 	public void configure(HttpSecurity http) throws Exception {
 		http.httpBasic();
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-		http.requestMatchers().antMatchers("/api/**");
-		http.authorizeRequests().antMatchers("/api/**").access("@securityService.decide(request,authentication)");
+		http.requestMatchers().antMatchers("/api/**").and().authorizeRequests().antMatchers("/api/**")
+				.access("@securityService.decide(request,authentication)");
 
 	}
 
+	@Autowired
+	private ApplicationContext applicationContext;
+
 	@Bean
-	public OAuth2WebSecurityExpressionHandler oAuth2WebSecurityExpressionHandler(
-			ApplicationContext applicationContext) {
+	public OAuth2WebSecurityExpressionHandler oAuth2WebSecurityExpressionHandler() {
 		OAuth2WebSecurityExpressionHandler expressionHandler = new OAuth2WebSecurityExpressionHandler();
 		expressionHandler.setApplicationContext(applicationContext);
 		return expressionHandler;
 	}
 
-	@Autowired
-	private OAuth2WebSecurityExpressionHandler expressionHandler;
-
 	@Override
 	public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
-		resources.expressionHandler(expressionHandler);
+		resources.expressionHandler(oAuth2WebSecurityExpressionHandler());
 	}
 
 }
