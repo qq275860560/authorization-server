@@ -31,11 +31,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.csrf().disable();
 		http.headers().frameOptions().disable();
 		http.formLogin() .and().logout() ;
-		//http.authorizeRequests().anyRequest().permitAll();
-		//http.requestMatchers().antMatchers("/login","/logout", "/oauth/**")	.and().authorizeRequests().anyRequest().permitAll();
-
+		http.authorizeRequests()
+		.antMatchers(  "/oauth/**").authenticated()
+		.anyRequest().permitAll();
 	}
-
-	// todo 重启之后token和code失效问题
-
 }

@@ -211,7 +211,7 @@ public class SecurityServiceImpl extends SecurityService {
 			put("admin", new HashMap<String, Object>() {
 				{
 					put("secret", new BCryptPasswordEncoder().encode("123456"));
-					put("registeredRedirectUris", "http://localhost:8081/api/admin/getCode,http://localhost:8081/api/admin/getToken");
+					put("registeredRedirectUris", "http://localhost:8081/api/admin/getCode,http://localhost:8081/api/admin/getToken,http://localhost:8198/components/user/platformSSOLogin.html");
 					put("authorizedGrantTypes",
 							"authorization_code,refresh_token,implicit,password,client_credentials");
 
